@@ -1,0 +1,1657 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Şikayet Radarı</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%230b6e74'/%3E%3Cpath d='M12 12L18 7M6 18A8.5 8.5 0 1 1 18 18' stroke='white' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Onest:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one left-aligned operations shell — header, tabs, one sticky filter row that scopes every chart, then summary → trend → breakdown → detail. */
+:root{
+  --bg:#f3f4f6; --surface:#ffffff; --surface-2:#eef0f3; --ink:#14171c; --ink-2:#4a5160; --muted:#7a8291;
+  --line:#e2e5ea; --line-strong:#c9ced6; --accent:#0b6e74; --accent-ink:#ffffff; --accent-soft:#dcefef;
+  --bad:#b42828; --good:#0a7a0a; --warn-bg:#fff4d6; --warn-ink:#6b4a00;
+  --c1:#2a78d6; --c2:#eb6834; --c3:#1baf7a; --c4:#eda100; --c5:#e87ba4; --c6:#008300; --c7:#4a3aa7; --c8:#e34948; --c0:#b5b3ab;
+  --heat:#0b6e74;
+  --f-display:"Bricolage Grotesque", "Onest", system-ui, sans-serif;
+  --f-body:"Onest", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --r:10px; --r-sm:6px;
+  --shadow:0 1px 2px rgba(20,23,28,.05), 0 0 0 1px rgba(20,23,28,.06);
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0f1114; --surface:#171a1f; --surface-2:#1f232a; --ink:#eef0f3; --ink-2:#b8bec8; --muted:#868d9a;
+  --line:#272b33; --line-strong:#3a3f49; --accent:#4cc2c9; --accent-ink:#0b1c1d; --accent-soft:#163236;
+  --bad:#f07070; --good:#3ccf5a; --warn-bg:#3a2e10; --warn-ink:#f3d58a;
+  --c1:#3987e5; --c2:#d95926; --c3:#199e70; --c4:#c98500; --c5:#d55181; --c6:#008300; --c7:#9085e9; --c8:#e66767; --c0:#5a5953;
+  --heat:#4cc2c9; --shadow:0 0 0 1px rgba(255,255,255,.06); color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0f1114; --surface:#171a1f; --surface-2:#1f232a; --ink:#eef0f3; --ink-2:#b8bec8; --muted:#868d9a;
+  --line:#272b33; --line-strong:#3a3f49; --accent:#4cc2c9; --accent-ink:#0b1c1d; --accent-soft:#163236;
+  --bad:#f07070; --good:#3ccf5a; --warn-bg:#3a2e10; --warn-ink:#f3d58a;
+  --c1:#3987e5; --c2:#d95926; --c3:#199e70; --c4:#c98500; --c5:#d55181; --c6:#008300; --c7:#9085e9; --c8:#e66767; --c0:#5a5953;
+  --heat:#4cc2c9; --shadow:0 0 0 1px rgba(255,255,255,.06); color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--bg); color:var(--ink); font-family:var(--f-body); font-size:14px; line-height:1.45}
+button,input,select,textarea{font:inherit; color:inherit}
+h1,h2,h3{margin:0; text-wrap:balance}
+.app{max-width:1360px; margin:0 auto; padding-inline:16px; padding-block:18px 64px; display:flex; flex-direction:column; gap:14px}
+@media (min-width:760px){ .app{padding-inline:28px} }
+
+/* header */
+.top{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap}
+.brand{display:flex; align-items:center; gap:12px; min-width:0}
+.mark{width:38px; height:38px; flex:none; border-radius:10px; background:var(--accent); display:grid; place-items:center}
+.mark svg{width:24px; height:24px}
+.brand h1{font-family:var(--f-display); font-size:22px; font-weight:700; letter-spacing:-.01em}
+.brand p{margin:0; color:var(--muted); font-size:13px}
+.status{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+.pill{display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:600; background:var(--surface); box-shadow:var(--shadow); color:var(--ink-2); white-space:nowrap}
+.pill .dot{width:7px; height:7px; border-radius:50%; background:var(--muted)}
+.pill.live .dot{background:var(--good)}
+.pill.demo{background:var(--warn-bg); color:var(--warn-ink); box-shadow:none}
+
+/* tabs */
+.tabs{display:flex; gap:2px; border-bottom:1px solid var(--line); overflow-x:auto; scrollbar-width:none}
+.tab{appearance:none; border:0; background:none; padding:10px 14px; font-weight:600; color:var(--muted); cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; white-space:nowrap; display:flex; gap:6px; align-items:center}
+.tab:hover{color:var(--ink)}
+.tab[aria-selected="true"]{color:var(--ink); border-bottom-color:var(--accent)}
+.tab .n{font-size:11px; padding:1px 6px; border-radius:999px; background:var(--surface-2); color:var(--ink-2); font-variant-numeric:tabular-nums}
+
+/* banner */
+.banner{display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; padding:10px 14px; border-radius:var(--r); background:var(--warn-bg); color:var(--warn-ink); font-weight:500}
+
+/* filters */
+.filters{position:sticky; top:env(safe-area-inset-top,0px); z-index:5; background:color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter:blur(6px); padding-block:8px; display:flex; flex-wrap:wrap; gap:10px 18px; align-items:center}
+.fgroup{display:flex; align-items:center; gap:6px; flex-wrap:wrap}
+.flabel{font-size:11px; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); font-weight:600; margin-right:2px}
+.seg{display:inline-flex; background:var(--surface-2); border-radius:8px; padding:2px; gap:2px}
+.seg button{border:0; background:none; padding:5px 10px; border-radius:6px; cursor:pointer; color:var(--ink-2); font-weight:500; font-size:13px; white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--surface); color:var(--ink); box-shadow:var(--shadow); font-weight:600}
+.chip{border:1px solid var(--line-strong); background:var(--surface); border-radius:999px; padding:4px 11px; cursor:pointer; font-size:13px; font-weight:500; color:var(--ink-2); display:inline-flex; gap:6px; align-items:center; white-space:nowrap}
+.chip .n{color:var(--muted); font-variant-numeric:tabular-nums; font-size:12px}
+.chip[aria-pressed="true"]{border-color:var(--accent); background:var(--accent-soft); color:var(--ink)}
+input[type="date"],input[type="search"],input[type="text"],select,textarea{background:var(--surface); border:1px solid var(--line-strong); border-radius:var(--r-sm); padding:6px 9px; min-width:0}
+input[type="date"]{padding:4px 8px}
+textarea{resize:vertical; width:100%; line-height:1.4}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+.btn{appearance:none; border:1px solid var(--line-strong); background:var(--surface); border-radius:var(--r-sm); padding:6px 12px; cursor:pointer; font-weight:600; font-size:13px; display:inline-flex; align-items:center; gap:6px; white-space:nowrap; color:var(--ink)}
+.btn:hover{border-color:var(--ink-2)}
+.btn.primary{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn.ghost{border-color:transparent; background:none; color:var(--ink-2)}
+.btn.ghost:hover{background:var(--surface-2)}
+.btn.danger{color:var(--bad)}
+.btn:disabled{opacity:.5; cursor:not-allowed}
+.btn.sm{padding:3px 8px; font-size:12px}
+
+/* cards */
+.card{background:var(--surface); border-radius:var(--r); box-shadow:var(--shadow); padding:16px; min-width:0}
+.card-h{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:10px}
+.card h2{font-family:var(--f-display); font-size:16px; font-weight:600; letter-spacing:-.005em}
+.card .hint{color:var(--muted); font-size:12.5px; margin:2px 0 0}
+.grid2{display:grid; grid-template-columns:1fr; gap:14px}
+@media (min-width:980px){ .grid2{grid-template-columns:minmax(0,1fr) minmax(0,1fr)} }
+.stack{display:flex; flex-direction:column; gap:14px}
+
+/* KPIs */
+.kpis{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px}
+@media (min-width:900px){ .kpis{grid-template-columns:repeat(4,minmax(0,1fr))} }
+.kpi{background:var(--surface); border-radius:var(--r); box-shadow:var(--shadow); padding:14px 16px; display:flex; flex-direction:column; gap:4px; min-width:0}
+.kpi .lab{font-size:11px; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); font-weight:600}
+.kpi .val{font-size:28px; font-weight:700; letter-spacing:-.02em; line-height:1.1; overflow-wrap:anywhere}
+.kpi .val.txt{font-size:18px; line-height:1.25}
+.kpi .meta .btn{white-space:normal; text-align:left}
+.kpi .meta{font-size:12.5px; color:var(--ink-2); display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+.delta{font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap}
+.delta.up{color:var(--bad)} .delta.down{color:var(--good)} .delta.flat{color:var(--muted)}
+.meter{height:6px; border-radius:3px; background:var(--surface-2); display:flex; overflow:hidden; gap:2px; margin-top:4px}
+.meter span{display:block; height:100%}
+
+/* legend + chart */
+.legend{display:flex; flex-wrap:wrap; gap:4px 6px; margin-bottom:6px}
+.lg{border:0; background:none; display:inline-flex; align-items:center; gap:6px; padding:3px 7px; border-radius:6px; cursor:pointer; font-size:12.5px; color:var(--ink-2)}
+.lg:hover{background:var(--surface-2)}
+.lg i{width:10px; height:10px; border-radius:3px; display:inline-block; flex:none}
+.lg[aria-pressed="false"]{opacity:.42}
+.lg[aria-pressed="false"] i{background:transparent!important; box-shadow:inset 0 0 0 1.5px var(--muted)}
+.chart{position:relative; width:100%; min-height:280px}
+.chart svg{display:block; overflow:visible}
+.chart text{font-family:var(--f-body); font-size:11px; fill:var(--muted); font-variant-numeric:tabular-nums}
+.chart .grid{stroke:var(--line); stroke-width:1}
+.chart .base{stroke:var(--line-strong); stroke-width:1}
+.chart .hl{fill:var(--ink); opacity:0}
+.chart .hl.on{opacity:.05}
+.tip{position:absolute; z-index:4; pointer-events:none; background:var(--surface); color:var(--ink); box-shadow:0 6px 24px rgba(0,0,0,.14), 0 0 0 1px var(--line); border-radius:8px; padding:8px 10px; font-size:12.5px; min-width:180px; max-width:280px}
+.tip b{display:block; margin-bottom:4px; font-weight:600}
+.tip .r{display:flex; align-items:center; gap:7px; justify-content:space-between}
+.tip .r span:first-child{display:flex; align-items:center; gap:6px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--ink-2)}
+.tip .r i{width:8px; height:8px; border-radius:2px; flex:none}
+.tip .r span:last-child{font-variant-numeric:tabular-nums; font-weight:600}
+.tip .tot{border-top:1px solid var(--line); margin-top:5px; padding-top:5px}
+details.tableview{margin-top:8px}
+details.tableview summary{cursor:pointer; color:var(--ink-2); font-size:12.5px; font-weight:500}
+
+/* breakdown */
+.brk{display:flex; flex-direction:column}
+.brow{display:grid; grid-template-columns:minmax(0,1.3fr) minmax(60px,1fr) 52px 44px 62px; gap:10px; align-items:center; padding:7px 4px; border-bottom:1px solid var(--line); cursor:pointer; border-radius:4px}
+.brow:hover{background:var(--surface-2)}
+.brow.sub{cursor:default; padding-left:22px; font-size:13px; color:var(--ink-2)}
+.brow.sub:hover{background:none}
+.brow .nm{display:flex; align-items:center; gap:8px; min-width:0}
+.brow .nm span{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.brow .nm i{width:10px; height:10px; border-radius:3px; flex:none}
+.brow .car{color:var(--muted); font-size:10px; width:10px; flex:none; transition:transform .15s}
+.brow.open .car{transform:rotate(90deg)}
+.bar{height:8px; background:var(--surface-2); border-radius:4px; overflow:hidden}
+.bar span{display:block; height:100%; border-radius:0 4px 4px 0}
+.num{font-variant-numeric:tabular-nums; text-align:right; white-space:nowrap}
+.muted{color:var(--muted)}
+@media (max-width:560px){ .brow{grid-template-columns:minmax(0,1fr) 46px 40px 56px} .brow .bar{display:none} }
+
+/* tables */
+.tbl-wrap{overflow-x:auto; border-radius:8px}
+table{border-collapse:collapse; width:100%; font-size:13px}
+th{font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); font-weight:600; text-align:left; padding:8px 10px; border-bottom:1px solid var(--line-strong); white-space:nowrap; background:var(--surface)}
+td{padding:7px 10px; border-bottom:1px solid var(--line); vertical-align:top}
+td.num,th.num{text-align:right}
+tr.total td{font-weight:700; border-top:1px solid var(--line-strong)}
+.mx td.num{position:relative}
+.heat{position:absolute; inset:2px; border-radius:4px; background:var(--heat); z-index:0}
+.mx td.num span{position:relative; z-index:1}
+
+/* movers */
+.movers{display:grid; grid-template-columns:1fr; gap:0}
+@media (min-width:900px){ .movers{grid-template-columns:1fr 1fr; column-gap:28px} }
+.mv{display:grid; grid-template-columns:minmax(0,1fr) 84px 92px; gap:10px; align-items:center; padding:8px 0; border-bottom:1px solid var(--line)}
+.mv .t{min-width:0}
+.mv .t b{display:block; font-weight:600; font-size:13.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.mv .t small{color:var(--muted); font-size:12px}
+.mv svg{display:block}
+
+/* records */
+.toolbar{display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:12px}
+.toolbar input[type="search"]{flex:1 1 220px}
+.rec td.txt{min-width:260px; max-width:640px}
+.clamp{display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; cursor:pointer}
+.clamp.open{-webkit-line-clamp:unset}
+.rec select{max-width:240px; font-size:12.5px; padding:4px 6px}
+.tag{display:inline-block; font-size:11px; font-weight:600; padding:2px 7px; border-radius:999px; background:var(--surface-2); color:var(--ink-2); white-space:nowrap}
+.tag.a{background:color-mix(in srgb, var(--c7) 18%, transparent); color:var(--ink)}
+.tag.u{background:color-mix(in srgb, var(--c4) 22%, transparent); color:var(--ink)}
+.tag.none{background:color-mix(in srgb, var(--c8) 16%, transparent); color:var(--ink)}
+.chn{font-size:12px; color:var(--ink-2); white-space:nowrap}
+.pager{display:flex; justify-content:space-between; align-items:center; gap:10px; margin-top:10px; flex-wrap:wrap; color:var(--ink-2); font-size:13px}
+
+/* upload */
+.drop{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; border:1.5px dashed var(--line-strong); border-radius:var(--r); padding:28px 16px; text-align:center; cursor:pointer; background:var(--surface-2)}
+.drop.over{border-color:var(--accent); background:var(--accent-soft)}
+.drop b{font-size:15px}
+.drop small{color:var(--muted)}
+.fcard{border:1px solid var(--line); border-radius:var(--r); padding:14px; display:flex; flex-direction:column; gap:12px; margin-top:12px}
+.fcard-h{display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; align-items:center}
+.fcard-h b{font-size:14.5px; overflow-wrap:anywhere}
+.maprow{display:grid; grid-template-columns:1fr; gap:12px}
+@media (min-width:860px){ .maprow{grid-template-columns:repeat(3,minmax(0,1fr))} }
+.field{display:flex; flex-direction:column; gap:5px; min-width:0}
+.field > span{font-size:11px; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); font-weight:600}
+.checks{display:flex; flex-wrap:wrap; gap:6px}
+.chmap{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:6px 10px; align-items:center; font-size:13px}
+.chmap code{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.stats{display:flex; flex-wrap:wrap; gap:6px 16px; font-size:13px; color:var(--ink-2)}
+.stats b{color:var(--ink); font-variant-numeric:tabular-nums}
+.result{border-radius:8px; padding:10px 12px; background:var(--accent-soft); display:flex; flex-wrap:wrap; gap:8px 14px; align-items:center; justify-content:space-between}
+.preview td{font-size:12.5px}
+
+/* taxonomy */
+.taxgrid{display:grid; grid-template-columns:1fr; gap:14px; align-items:start}
+@media (min-width:1100px){ .taxgrid{grid-template-columns:minmax(0,1fr) 340px} }
+.cat{border:1px solid var(--line); border-radius:var(--r); background:var(--surface)}
+.cat + .cat{margin-top:10px}
+.cat-h{display:flex; gap:8px; align-items:center; padding:10px 12px; flex-wrap:wrap}
+.cat-h i{width:12px; height:12px; border-radius:3px; flex:none}
+.cat-h input{font-weight:700; flex:1 1 200px}
+.cat-h .cnt{color:var(--muted); font-size:12.5px; font-variant-numeric:tabular-nums}
+.subs{border-top:1px solid var(--line); padding:6px 12px 12px; display:flex; flex-direction:column; gap:8px}
+.subrow{display:grid; grid-template-columns:minmax(0,220px) minmax(0,1fr) 64px auto; gap:8px; align-items:start; padding-top:6px}
+.subrow textarea{min-height:36px; font-size:12.5px}
+.subrow .cnt{font-variant-numeric:tabular-nums; font-size:12.5px; color:var(--ink-2); text-align:right; padding-top:7px}
+@media (max-width:720px){ .subrow{grid-template-columns:1fr auto} .subrow textarea{grid-column:1 / -1} .subrow .cnt{text-align:left} }
+.side{position:sticky; top:calc(env(safe-area-inset-top,0px) + 12px); display:flex; flex-direction:column; gap:14px}
+.testres{font-size:13px; display:flex; flex-direction:column; gap:6px}
+.kw{display:inline-block; padding:1px 6px; border-radius:4px; background:var(--accent-soft); font-size:12px; margin:0 3px 3px 0}
+.savebar{position:sticky; bottom:calc(env(safe-area-inset-bottom,0px) + 12px); z-index:6; display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap; background:var(--ink); color:var(--bg); padding:10px 14px; border-radius:var(--r); box-shadow:0 8px 28px rgba(0,0,0,.2)}
+.savebar .btn{border-color:transparent}
+.savebar .btn.ghost{color:var(--bg)}
+.savebar .btn.ghost:hover{background:rgba(127,127,127,.25)}
+
+/* empty + ai bar + toasts */
+.empty{padding:40px 20px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:10px}
+.empty h3{font-family:var(--f-display); font-size:19px}
+.empty p{color:var(--ink-2); max-width:52ch; margin:0}
+.empty .row{display:flex; gap:8px; flex-wrap:wrap; justify-content:center}
+.aibar{position:fixed; left:50%; transform:translateX(-50%); bottom:calc(env(safe-area-inset-bottom,0px) + 16px); z-index:20; background:var(--surface); box-shadow:0 10px 30px rgba(0,0,0,.18), 0 0 0 1px var(--line); border-radius:12px; padding:12px 14px; display:flex; gap:14px; align-items:center; width:min(560px, calc(100% - 32px))}
+.aibar .prog{flex:1; min-width:0}
+.aibar .prog div{height:6px; background:var(--surface-2); border-radius:3px; overflow:hidden; margin-top:6px}
+.aibar .prog span{display:block; height:100%; background:var(--c7); width:0; transition:width .3s}
+.toasts{position:fixed; right:16px; top:calc(env(safe-area-inset-top,0px) + 16px); z-index:30; display:flex; flex-direction:column; gap:8px; max-width:min(380px, calc(100% - 32px))}
+.toast{background:var(--ink); color:var(--bg); padding:10px 14px; border-radius:8px; font-size:13px; box-shadow:0 8px 24px rgba(0,0,0,.2)}
+.toast.err{background:var(--bad); color:#fff}
+.loading{opacity:.55; transition:opacity .2s}
+.ro-note{font-size:12.5px; color:var(--muted)}
+.sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0)}
+
+/* auth + user menu */
+.authwrap{min-height:100vh; display:grid; place-items:center; padding-inline:16px; padding-block:32px}
+.authcard{width:min(400px,100%); background:var(--surface); border-radius:14px; box-shadow:var(--shadow); padding:28px 24px; display:flex; flex-direction:column; gap:14px}
+.authcard h1{font-family:var(--f-display); font-size:22px}
+.authcard form{display:flex; flex-direction:column; gap:12px}
+.authcard input{width:100%; padding:9px 11px}
+.authcard .btn{justify-content:center}
+.authcard hr,.um hr{border:0; border-top:1px solid var(--line); margin:2px 0; width:100%}
+.auth-msg{margin:0; font-size:13px; color:var(--ink-2)}
+.auth-msg:empty{display:none}
+.auth-msg.err{color:var(--bad)}
+.auth-msg.cfg,.auth-msg.noacc{background:var(--warn-bg); color:var(--warn-ink); padding:10px 12px; border-radius:8px}
+.usermenu{position:relative}
+.usermenu summary{cursor:pointer; list-style:none}
+.usermenu summary::-webkit-details-marker{display:none}
+.um{position:absolute; right:0; top:calc(100% + 6px); z-index:15; background:var(--surface); box-shadow:0 10px 30px rgba(0,0,0,.16), 0 0 0 1px var(--line); border-radius:10px; padding:12px; display:flex; flex-direction:column; gap:8px; width:240px}
+.um input{width:100%}
+@media (prefers-reduced-motion: reduce){ *{transition:none!important; animation:none!important} }
+</style>
+
+<div class="authwrap" id="auth" hidden>
+  <div class="authcard">
+    <div class="brand"><div class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="var(--accent-ink)" stroke-width="2" stroke-linecap="round"><path d="M12 12 L19 6"/><path d="M4.9 19.1A10 10 0 1 1 19.1 19.1"/><path d="M8.5 15.5a5 5 0 1 1 7 0"/><circle cx="12" cy="12" r="1.2" fill="var(--accent-ink)"/></svg></div><div><h1>Şikayet Radarı</h1><p>Ekip girişi</p></div></div>
+    <p class="auth-msg" id="authMsg"></p>
+    <form id="authForm" autocomplete="on">
+      <label class="field"><span>E-posta</span><input type="email" id="authEmail" autocomplete="username" required></label>
+      <label class="field"><span>Şifre</span><input type="password" id="authPw" autocomplete="current-password" required></label>
+      <button class="btn primary" id="authBtn" type="submit">Giriş yap</button>
+    </form>
+    <div id="authOut" hidden><button class="btn" data-act="authLogout" style="width:100%">Başka hesapla giriş yap</button></div>
+    <hr>
+    <button class="btn ghost" data-act="authDemo">Örnek veriyle göz at</button>
+    <p class="muted" style="margin:0;font-size:12.5px">Hesabın yoksa ekip yöneticisinden iste. Örnek veri uydurmadır ve kaydedilmez.</p>
+  </div>
+</div>
+
+<div class="app" id="app" hidden>
+  <header class="top">
+    <div class="brand">
+      <div class="mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent-ink)" stroke-width="2" stroke-linecap="round"><path d="M12 12 L19 6"/><path d="M4.9 19.1A10 10 0 1 1 19.1 19.1"/><path d="M8.5 15.5a5 5 0 1 1 7 0"/><circle cx="12" cy="12" r="1.2" fill="var(--accent-ink)"/></svg>
+      </div>
+      <div><h1>Şikayet Radarı</h1><p>Kanal bazlı şikayet sınıflandırma ve trend paneli</p></div>
+    </div>
+    <div class="status" id="status"><span class="pill"><span class="dot"></span>Bağlanıyor…</span></div>
+  </header>
+
+  <nav class="tabs" role="tablist" id="tabs">
+    <button class="tab" role="tab" data-tab="panel" aria-selected="true">Panel</button>
+    <button class="tab" role="tab" data-tab="kayit" aria-selected="false">Kayıtlar <span class="n" id="nRec">0</span></button>
+    <button class="tab" role="tab" data-tab="yukle" aria-selected="false">Veri yükle</button>
+    <button class="tab" role="tab" data-tab="kategori" aria-selected="false">Kategoriler</button>
+  </nav>
+
+  <div class="banner" id="demoBanner" hidden>
+    <span>Örnek veri gösteriliyor. Bu kayıtlar uydurmadır ve hiçbir yere kaydedilmez.</span>
+    <button class="btn sm" data-act="exitDemo">Örnek veriden çık</button>
+  </div>
+
+  <section class="filters" id="filters" aria-label="Filtreler">
+    <div class="fgroup">
+      <span class="flabel">Dönem</span>
+      <div class="seg" id="presets">
+        <button data-p="7">7 gün</button><button data-p="30">30 gün</button><button data-p="90">90 gün</button><button data-p="month">Bu ay</button><button data-p="all">Tümü</button>
+      </div>
+      <input type="date" id="dFrom" aria-label="Başlangıç tarihi"><span class="muted">–</span><input type="date" id="dTo" aria-label="Bitiş tarihi">
+    </div>
+    <div class="fgroup" id="chanChips"><span class="flabel">Kanal</span></div>
+    <div class="fgroup">
+      <span class="flabel">Aralık</span>
+      <div class="seg" id="gran"><button data-g="day">Gün</button><button data-g="week">Hafta</button><button data-g="month">Ay</button></div>
+    </div>
+  </section>
+
+  <main>
+    <!-- PANEL -->
+    <section id="tab-panel" class="stack">
+      <div id="panelEmpty" class="card" hidden></div>
+      <div id="panelBody" class="stack">
+        <div class="kpis" id="kpis"></div>
+        <div class="card">
+          <div class="card-h">
+            <div><h2>Şikayet trendi</h2><p class="hint" id="trendHint"></p></div>
+            <div class="fgroup">
+              <div class="seg" id="trendMode"><button data-m="cat">Kategori</button><button data-m="ch">Kanal</button><button data-m="total">Toplam</button></div>
+              <select id="focusCat" aria-label="Kategori odağı"></select>
+            </div>
+          </div>
+          <div class="legend" id="trendLegend"></div>
+          <div class="chart" id="trendChart"></div>
+          <details class="tableview"><summary>Tablo görünümü</summary><div class="tbl-wrap" id="trendTable"></div></details>
+        </div>
+        <div class="grid2">
+          <div class="card">
+            <div class="card-h"><div><h2>Kategori dağılımı</h2><p class="hint">Önceki eşit uzunluktaki döneme göre değişim. Satıra tıkla, alt kategoriler açılsın.</p></div></div>
+            <div class="brk" id="catBreak"></div>
+          </div>
+          <div class="card">
+            <div class="card-h"><div><h2>Kategori × kanal</h2><p class="hint">Koyu hücre, o kanalda en çok şikayet gelen kategori.</p></div></div>
+            <div class="tbl-wrap" id="matrix"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><div><h2>En çok artan alt kategoriler</h2><p class="hint">Bu dönem ile önceki dönem arasındaki fark, en az 3 kayıt.</p></div></div>
+          <div class="movers" id="movers"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RECORDS -->
+    <section id="tab-kayit" class="card" hidden>
+      <div class="toolbar">
+        <input type="search" id="recQ" placeholder="Metinde ara…" aria-label="Metinde ara">
+        <select id="recCat" aria-label="Kategori"></select>
+        <select id="recSub" aria-label="Alt kategori"></select>
+        <select id="recMeth" aria-label="Yöntem">
+          <option value="">Tüm yöntemler</option><option value="r">Kural</option><option value="a">AI</option><option value="u">Manuel</option><option value="none">Sınıflandırılmamış</option>
+        </select>
+      </div>
+      <div class="toolbar" id="recActions"></div>
+      <div class="tbl-wrap"><table class="rec" id="recTable"></table></div>
+      <div class="pager" id="recPager"></div>
+    </section>
+
+    <!-- UPLOAD -->
+    <section id="tab-yukle" class="stack" hidden>
+      <div class="card">
+        <div class="card-h"><div><h2>Excel yükle</h2><p class="hint">.xlsx, .xls veya .csv. Aynı tarih, kanal ve metne sahip kayıt ikinci kez eklenmez; iki listede de olsa tek sayılır.</p></div></div>
+        <div id="uploadZone">
+          <label class="drop" id="drop" for="fileIn">
+            <b>Dosyaları buraya bırak ya da seç</b>
+            <small>Birden fazla dosya seçebilirsin. Her dosya için tarih, metin ve kanal sütunlarını eşleştireceksin.</small>
+            <input type="file" id="fileIn" multiple accept=".xlsx,.xls,.csv,.xlsm" class="sr">
+          </label>
+        </div>
+        <p class="ro-note" id="uploadRO" hidden>Bu panelde yalnızca görüntüleme yetkin var. Veri yüklemek için panel sahibinden düzenleme yetkisi iste.</p>
+        <div id="fileCards"></div>
+      </div>
+      <div class="card">
+        <div class="card-h"><div><h2>Yükleme geçmişi</h2><p class="hint">Hatalı bir yüklemeyi silersen yalnızca o yüklemeyle eklenen kayıtlar kaldırılır.</p></div></div>
+        <div class="tbl-wrap" id="uploadList"></div>
+      </div>
+    </section>
+
+    <!-- TAXONOMY -->
+    <section id="tab-kategori" hidden>
+      <div class="taxgrid">
+        <div>
+          <div class="card" style="margin-bottom:14px">
+            <h2>Kategoriler ve anahtar kelimeler</h2>
+            <p class="hint">Her alt kategoriye virgülle ayrılmış anahtar kelimeler yaz. Kelime başı eşleşir: “başvur” yazarsan “başvurum, başvuruyu” da yakalanır. Türkçe karakter fark etmez. Birden fazla alt kategori eşleşirse daha uzun, daha spesifik kelimeleri eşleşen kazanır; “Diğer” alt kategorileri ancak spesifik bir eşleşme yoksa seçilir. Kurallarla eşleşmeyen şikayetleri AI ile sınıflandırabilirsin; AI ve manuel atamalar kural değişikliklerinden etkilenmez.</p>
+          </div>
+          <div id="taxEditor"></div>
+          <div class="fgroup" style="margin-top:12px" id="taxAdd"></div>
+        </div>
+        <aside class="side">
+          <div class="card">
+            <h2>Kuralı dene</h2>
+            <p class="hint">Bir şikayet metni yapıştır, hangi alt kategoriye düştüğünü gör. Kaydedilmemiş değişiklikler de hesaba katılır.</p>
+            <textarea id="testTxt" rows="4" style="margin-top:10px" placeholder="Örn. Kartıma iade gelmedi, provizyon hala duruyor"></textarea>
+            <div class="testres" id="testRes" style="margin-top:8px"></div>
+          </div>
+          <div class="card">
+            <h2>Kapsama</h2>
+            <p class="hint">Seçili dönemdeki kayıtların kaçı kurallarla eşleşiyor.</p>
+            <div id="coverage" style="margin-top:8px"></div>
+          </div>
+        </aside>
+      </div>
+      <div class="savebar" id="taxSave" hidden>
+        <span id="taxSaveMsg">Kaydedilmemiş değişiklikler var</span>
+        <div class="fgroup"><button class="btn ghost" data-act="taxReset">Geri al</button><button class="btn primary" data-act="taxSave">Kaydet</button></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="aibar" id="aiBar" hidden>
+  <div class="prog"><div style="margin:0;height:auto;background:none" id="aiTxt">AI sınıflandırıyor…</div><div><span id="aiProg"></span></div></div>
+  <button class="btn sm" data-act="aiStop">Durdur</button>
+</div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+'use strict';
+/* ============ constants ============ */
+const CHANNELS = [
+  { id: 'ai', name: 'AI Asistan', short: 'AI Asistan', color: 'var(--c1)' },
+  { id: 'web', name: 'Web Form', short: 'Web Form', color: 'var(--c2)' },
+  { id: 'mobil', name: 'Mobil Form', short: 'Mobil Form', color: 'var(--c3)' },
+  { id: 'ivr', name: 'Çağrı Merkezi (IVR)', short: 'Çağrı Mrk.', color: 'var(--c4)' },
+];
+const CH = Object.fromEntries(CHANNELS.map(c => [c.id, c]));
+const CAT_COLORS = ['var(--c1)', 'var(--c2)', 'var(--c3)', 'var(--c4)', 'var(--c5)', 'var(--c6)', 'var(--c7)', 'var(--c8)'];
+const NONE_COLOR = 'var(--c0)';
+const AI_BATCH = 20;
+
+const sub = (id, name, kw) => ({ id, name, kw: kw.split(',').map(s => s.trim()).filter(Boolean) });
+const DEFAULT_TAX = { cats: [
+  { id: 'dd', name: 'Diğer Destek', subs: [
+    sub('dd_belge', 'Belge, Ücret & Bildirim', 'belge, dekont, makbuz, ücret, masraf, komisyon, kesinti, bildirim, e-posta, mail, bilgilendirme, sözleşme, hesap cüzdanı, vergi'),
+    sub('dd_diger', 'Diğer', 'destek, müşteri hizmet, temsilci, ulaşamıyorum, ulaşılamıyor, geri dönüş, cevap verilmedi, yanıt alamadım'),
+  ]},
+  { id: 'fby', name: 'Faiz, Birikim ve Yatırım', subs: [
+    sub('fby_diger', 'Diğer', 'birikim, getiri, kumbara, hedef birikim'),
+    sub('fby_doviz', 'Döviz, Altın & Yatırım', 'döviz, dolar, euro, avro, sterlin, usd, eur, altın, gram altın, kur, yatırım, fon, hisse, borsa'),
+    sub('fby_faiz', 'Günlük Faiz ve Vadeli Hesap', 'faiz, günlük faiz, vadeli, vade, mevduat, faiz oranı, stopaj'),
+  ]},
+  { id: 'gd', name: 'Giriş ve Doğrulama', subs: [
+    sub('gd_diger', 'Diğer', 'doğrulama, doğrulayamıyorum, onaylanmıyor'),
+    sub('gd_kimlik', 'Kimlik, NFC & Yüz Doğrulama', 'kimlik, nfc, yüz doğrulama, yüz tanıma, yüzümü, selfie, çip, kimlik kartı, canlılık, görüntülü görüşme, video görüşme'),
+    sub('gd_sim', 'SIM Blokesi & Cihaz Değişikliği', 'sim, sim kart, sim blokesi, sim bloke, cihaz değişikliği, cihaz değiştir, yeni telefon, telefon değiştir, telefonumu değiştir, hat değiş, operatör'),
+    sub('gd_sms', 'SMS & Doğrulama Kodu', 'sms, doğrulama kodu, onay kodu, otp, tek kullanımlık, kod gelmiyor, kod gelmedi, mesaj gelmiyor'),
+    sub('gd_sifre', 'Şifre, Giriş & Uygulama', 'şifre, parola, giriş yapamıyorum, giriş yapamadım, giremiyorum, uygulama açılmıyor, uygulama hata, uygulama çöküyor, donuyor, oturum, login, uygulamaya'),
+  ]},
+  { id: 'hs', name: 'Hesap', subs: [
+    sub('hs_diger', 'Diğer', 'hesap, hesabım'),
+    sub('hs_guncel', 'Hesap Güncellemesi', 'adres, güncelle, bilgi güncelle, bilgilerimi güncelle, adres değiş, adresimi, numara değiş, numaramı değiştir, e-posta değiş, iletişim bilgi, isim değiş, soyadı, meslek bilgi, gelir bilgi'),
+    sub('hs_kapat', 'Hesap Kapatma', 'hesap kapat, hesabımı kapat, hesabı kapat, hesabımı sil, hesap sil, üyelik iptal, üyeliğimi iptal, hesap kapama'),
+    sub('hs_kullan', 'Hesap Kullanımı', 'hesap bloke, hesabım bloke, hesabıma bloke, kısıtlama, kısıtlandı, hesap dondur, donduruldu, bakiye, hesap aç, iban, hesap hareket, hesap limiti'),
+  ]},
+  { id: 'kg', name: 'Kampanya ve GetirPara', subs: [
+    sub('kg_diger', 'Diğer', 'puan, ödül, hediye'),
+    sub('kg_gp', 'GetirPara', 'getirpara, getir para, getir parası'),
+    sub('kg_kamp', 'Kampanya', 'kampanya, indirim, promosyon, kupon, fırsat, davet, referans, çekiliş, cashback, para iadesi kampanya'),
+  ]},
+  { id: 'kt', name: 'Kart', subs: [
+    sub('kt_diger', 'Diğer', 'kart, kartım'),
+    sub('kt_iade', 'İade & Provizyon', 'iade, provizyon, bloke tutar, para iadesi, çift çekim, iki kez çekildi, iki defa çekildi, harcama itiraz, itiraz, chargeback'),
+    sub('kt_basvuru', 'Kart Başvurusu ve Kullanımı', 'kart başvur, kart teslim, kartım gelmedi, kart gelmedi, kargo, kurye, fiziksel kart, sanal kart, kart aktif, kartı aktif, temassız, atm, pos'),
+    sub('kt_borc', 'Kart Borcu, Ekstre & Fatura', 'kart borcu, kart borcum, ekstre, hesap kesim, asgari, son ödeme, fatura, kart ödemesi, gecikme faizi'),
+    sub('kt_islem', 'Kart İşlemleri', 'kart limit, kart şifre, kartım bloke, kart bloke, kart iptal, kartımı iptal, kartı kapat, kartım çalındı, kaybettim, yurt dışı, internet alışveriş, 3d secure, işlem reddedildi, ödeme reddedildi, harcama yapamıyorum'),
+  ]},
+  { id: 'kr', name: 'Kredi', subs: [
+    sub('kr_diger', 'Diğer', 'kredi'),
+    sub('kr_basvuru', 'Kredi Başvurusu', 'kredi başvur, başvurum, kredi limiti, kredi notu, findeks, ihtiyaç kredisi, kredi teklif, kredi onay'),
+    sub('kr_kapat', 'Kredi Kapatma & Yapılandırma', 'kredi kapat, kredimi kapat, erken kapama, erken ödeme, yapılandırma, kapama tutarı, ara ödeme'),
+    sub('kr_taksit', 'Kredi Taksiti', 'taksit, kredi taksit, taksidim, ödeme planı, otomatik ödeme, gecikme, icra'),
+  ]},
+  { id: 'pt', name: 'Para Transferleri', subs: [
+    sub('pt_diger', 'Diğer', 'transfer, para transferi, gelen para, para gelmedi, hesabıma geçmedi'),
+    sub('pt_giden', 'Giden Para Transferi', 'para gönder, gönderdiğim para, gönderdim, gönderim, eft, havale, fast, alıcıya ulaşmadı, alıcıya geçmedi, yanlış iban, karşı tarafa geçmedi'),
+  ]},
+]};
+
+/* ============ utils ============ */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const NF = new Intl.NumberFormat('tr-TR');
+const fmt = n => NF.format(Math.round(n));
+const pct = (a, b) => b ? (a / b * 100) : 0;
+const fmtPct = (v, d = 0) => '%' + v.toLocaleString('tr-TR', { maximumFractionDigits: d, minimumFractionDigits: d });
+const clone = o => JSON.parse(JSON.stringify(o));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const uuid4 = () => (crypto.randomUUID ? crypto.randomUUID() : '10000000-1000-4000-8000-100000000000'.replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)));
+const uid = p => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+
+const FOLD = { 'ç': 'c', 'ğ': 'g', 'ı': 'i', 'ö': 'o', 'ş': 's', 'ü': 'u', 'â': 'a', 'î': 'i', 'û': 'u' };
+function norm(s) {
+  s = String(s ?? '').toLocaleLowerCase('tr-TR').replace(/[çğıöşüâîû]/g, c => FOLD[c]);
+  s = s.normalize('NFD').replace(/[̀-ͯ]/g, '');
+  return ' ' + s.replace(/[^a-z0-9]+/g, ' ').trim() + ' ';
+}
+function cyrb53(str, seed = 0) {
+  let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed;
+  for (let i = 0, ch; i < str.length; i++) { ch = str.charCodeAt(i); h1 = Math.imul(h1 ^ ch, 2654435761); h2 = Math.imul(h2 ^ ch, 1597334677); }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
+}
+const rowHash = (d, c, t) => cyrb53(d + '|' + c + '|' + norm(t).trim());
+const ENC = new TextEncoder();
+const bytes = o => ENC.encode(JSON.stringify(o)).length;
+
+/* dates (YYYY-MM-DD strings, calendar arithmetic in UTC) */
+const pad = n => String(n).padStart(2, '0');
+const toUTC = s => Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10));
+const fromUTC = t => { const d = new Date(t); return d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate()); };
+const addDays = (s, n) => fromUTC(toUTC(s) + n * 864e5);
+const dayDiff = (a, b) => Math.round((toUTC(b) - toUTC(a)) / 864e5);
+const todayStr = () => { const d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
+const validYMD = (y, m, d) => y >= 1990 && y <= 2100 && m >= 1 && m <= 12 && d >= 1 && d <= 31 && new Date(Date.UTC(y, m - 1, d)).getUTCDate() === d;
+const MONTHS = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+const MON3 = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
+const WD = ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt'];
+const MON_NORM = MONTHS.map(m => norm(m).trim());
+const mondayOf = s => { const wd = new Date(toUTC(s)).getUTCDay(); return addDays(s, -((wd + 6) % 7)); };
+function bucketKey(d, g) { return g === 'day' ? d : g === 'week' ? mondayOf(d) : d.slice(0, 7); }
+function bucketsFor(from, to, g) {
+  const out = []; let last = null;
+  for (let d = from; d <= to; d = addDays(d, 1)) { const k = bucketKey(d, g); if (k !== last) { out.push(k); last = k; } }
+  return out;
+}
+function shortLabel(k, g) {
+  if (g === 'month') return MON3[+k.slice(5, 7) - 1] + ' ' + k.slice(2, 4);
+  return +k.slice(8, 10) + ' ' + MON3[+k.slice(5, 7) - 1];
+}
+function longLabel(k, g) {
+  if (g === 'month') return MONTHS[+k.slice(5, 7) - 1] + ' ' + k.slice(0, 4);
+  if (g === 'week') { const e = addDays(k, 6); return +k.slice(8, 10) + ' ' + MON3[+k.slice(5, 7) - 1] + ' – ' + +e.slice(8, 10) + ' ' + MON3[+e.slice(5, 7) - 1] + ' ' + e.slice(0, 4); }
+  return +k.slice(8, 10) + ' ' + MONTHS[+k.slice(5, 7) - 1] + ' ' + k.slice(0, 4) + ', ' + WD[new Date(toUTC(k)).getUTCDay()];
+}
+const fmtDate = s => s ? s.slice(8, 10) + '.' + s.slice(5, 7) + '.' + s.slice(0, 4) : '';
+
+/* parse a date cell from Excel/CSV into YYYY-MM-DD (or null) */
+function parseDate(v, date1904) {
+  if (v == null || v === '') return null;
+  if (v instanceof Date && !isNaN(v)) return v.getFullYear() + '-' + pad(v.getMonth() + 1) + '-' + pad(v.getDate());
+  if (typeof v === 'number') {
+    if (v > 20000 && v < 80000) return fromUTC(Date.UTC(1899, 11, 30) + Math.floor(v + (date1904 ? 1462 : 0)) * 864e5);
+    return null;
+  }
+  const s = String(v).trim();
+  let m;
+  if ((m = s.match(/^(\d{4})[-./](\d{1,2})[-./](\d{1,2})/))) { const y = +m[1], mo = +m[2], d = +m[3]; return validYMD(y, mo, d) ? y + '-' + pad(mo) + '-' + pad(d) : null; }
+  if ((m = s.match(/^(\d{1,2})[-./](\d{1,2})[-./](\d{2,4})/))) {
+    let a = +m[1], b = +m[2], y = +m[3]; if (y < 100) y += 2000;
+    let d = a, mo = b; if (b > 12 && a <= 12) { d = b; mo = a; }
+    return validYMD(y, mo, d) ? y + '-' + pad(mo) + '-' + pad(d) : null;
+  }
+  if ((m = norm(s).trim().match(/^(\d{1,2}) ([a-z]+) (\d{4})/))) {
+    const mi = MON_NORM.findIndex(x => x.startsWith(m[2].slice(0, 3)));
+    if (mi >= 0 && validYMD(+m[3], mi + 1, +m[1])) return m[3] + '-' + pad(mi + 1) + '-' + pad(+m[1]);
+  }
+  if (/^\d{5}(\.\d+)?$/.test(s)) return parseDate(+s, date1904);
+  return null;
+}
+function guessChannel(v) {
+  const n = norm(v);
+  if (/ ivr | cagri| call| telefon| santral/.test(n)) return 'ivr';
+  if (/ ai | asistan| bot | chatbot| chat| yapay/.test(n)) return 'ai';
+  if (/ mobil| mobile| app | ios | android| uygulama/.test(n)) return 'mobil';
+  if (/ web| site| internet/.test(n)) return 'web';
+  return '';
+}
+
+/* ============ classification ============ */
+function compile(tax) {
+  const subs = [], subMap = new Map(), catMap = new Map();
+  tax.cats.forEach((c, ci) => {
+    catMap.set(c.id, { id: c.id, name: c.name, ci, color: ci < 8 ? CAT_COLORS[ci] : NONE_COLOR, subs: c.subs.map(s => s.id) });
+    c.subs.forEach((s, si) => {
+      const o = { id: s.id, name: s.name, cat: c.id, catName: c.name, ci, si, kws: [...new Set((s.kw || []).map(k => norm(k).trim()).filter(Boolean))], raw: s.kw || [], other: norm(s.name).trim() === 'diger' };
+      subs.push(o); subMap.set(s.id, o);
+    });
+  });
+  return { tax, subs, subMap, catMap };
+}
+/* score = total length of matched keywords (a keyword that is a prefix of another matched one counts once);
+   "Diğer" subcategories are catch-alls, so their score is halved and a specific subcategory wins ties. */
+function classifyText(text, C, explain) {
+  const t = norm(text); let best = null, bs = 0, hits = null;
+  for (const s of C.subs) {
+    let m = null;
+    for (const k of s.kws) if (t.includes(' ' + k)) (m || (m = [])).push(k);
+    if (!m) continue;
+    if (m.length > 1) m = m.filter(k => !m.some(o => o !== k && o.length > k.length && o.startsWith(k)));
+    let sc = 0; for (const k of m) sc += k.length;
+    if (s.other) sc *= 0.5;
+    if (sc > bs) { bs = sc; best = s.id; hits = m; }
+  }
+  return explain ? { id: best, score: bs, hits: hits || [] } : best;
+}
+
+/* ============ storage ============ */
+function groupByDate(rows) {
+  const m = new Map();
+  for (const r of rows) { let g = m.get(r.d); if (!g) { g = { d: r.d, rows: [] }; m.set(r.d, g); } g.rows.push(r); }
+  return m;
+}
+/* in-memory store: used for the sample data, nothing leaves the browser */
+class LocalStore {
+  constructor(rows) { this.kind = 'local'; this.rows = new Map((rows || []).map(r => [r.h, r])); this.tax = null; this.ups = new Map(); }
+  async loadRange(f, t) { return groupByDate([...this.rows.values()].filter(r => r.d >= f && r.d <= t).map(r => ({ ...r }))); }
+  async bounds() { let min = null, max = null; for (const r of this.rows.values()) { if (!min || r.d < min) min = r.d; if (!max || r.d > max) max = r.d; } return { min, max }; }
+  async createUpload(u) { this.ups.set(u.id, { added: 0, dupDb: 0, at: Date.now(), ...u }); }
+  async updateUpload(id, p) { Object.assign(this.ups.get(id) || {}, p); }
+  async insertRows(upId, rows, prog) { const ins = []; for (const r of rows) { if (this.rows.has(r.h)) continue; this.rows.set(r.h, { ...r, u: upId }); ins.push(r.h); } prog && prog(rows.length); return ins; }
+  async setOverrides(list) { for (const { h, o, m } of list) { const r = this.rows.get(h); if (!r) continue; if (m === 'a' && r.m === 'u') continue; if (!m) { delete r.o; delete r.m; } else { r.o = o; r.m = m; } } }
+  async deleteUpload(u) { for (const [h, r] of this.rows) if (r.u === u.id) this.rows.delete(h); this.ups.delete(u.id); }
+  async listUploads() { return [...this.ups.values()].sort((a, b) => b.at - a.at); }
+  async getTax() { return this.tax; }
+  async saveTax(t) { this.tax = clone(t); }
+  onChange() { return () => {}; }
+}
+/* Supabase (Postgres) store: shared by the whole team, protected by row-level security */
+const COLS = 'hash,tarih,kanal,metin,kaynak_id,yukleme_id,atanan_alt,atama_yontemi';
+const fromDb = x => ({ h: x.hash, d: x.tarih, c: x.kanal, t: x.metin, x: x.kaynak_id || '', u: x.yukleme_id, o: x.atanan_alt, m: x.atama_yontemi });
+const chk = r => { if (r.error) throw r.error; return r.data; };
+class SupaStore {
+  constructor(sb, email) { this.kind = 'db'; this.sb = sb; this.email = email; }
+  _range(f, t) { return this.sb.from('sikayetler').select(COLS).gte('tarih', f).lte('tarih', t); }
+  async loadRange(f, t) {
+    const head = await this.sb.from('sikayetler').select('id', { count: 'exact', head: true }).gte('tarih', f).lte('tarih', t);
+    if (head.error) throw head.error;
+    const pages = Math.ceil((head.count || 0) / 1000), out = [];
+    for (let p = 0; p < pages; p += 4) {
+      const reqs = [];
+      for (let k = p; k < Math.min(pages, p + 4); k++) reqs.push(this._range(f, t).order('id').range(k * 1000, k * 1000 + 999));
+      for (const r of await Promise.all(reqs)) out.push(...chk(r));
+    }
+    return groupByDate(out.map(fromDb));
+  }
+  async bounds() {
+    const [a, b] = await Promise.all([
+      this.sb.from('sikayetler').select('tarih').order('tarih', { ascending: true }).limit(1),
+      this.sb.from('sikayetler').select('tarih').order('tarih', { ascending: false }).limit(1)]);
+    const A = chk(a), B = chk(b);
+    return { min: A.length ? A[0].tarih : null, max: B.length ? B[0].tarih : null };
+  }
+  async createUpload(u) { chk(await this.sb.from('yuklemeler').insert({ id: u.id, dosya: u.name, yukleyen: this.email, bas: u.from, bit: u.to, toplam: u.total, tekrar_dosya: u.dupFile || 0 })); }
+  async updateUpload(id, p) { chk(await this.sb.from('yuklemeler').update({ eklenen: p.added, tekrar_db: p.dupDb }).eq('id', id)); }
+  async insertRows(upId, rows, prog) {
+    const ins = [];
+    for (let i = 0; i < rows.length; i += 500) {
+      const batch = rows.slice(i, i + 500).map(r => ({ hash: r.h, tarih: r.d, kanal: r.c, metin: r.t, kaynak_id: r.x || null, yukleme_id: upId }));
+      const data = chk(await this.sb.from('sikayetler').upsert(batch, { onConflict: 'hash', ignoreDuplicates: true }).select('hash'));
+      for (const x of data || []) ins.push(x.hash);
+      prog && prog(Math.min(rows.length, i + 500));
+    }
+    return ins;
+  }
+  async setOverrides(list) {
+    const groups = new Map();
+    for (const { h, o, m } of list) { const k = (o || '') + '|' + (m || ''); if (!groups.has(k)) groups.set(k, { o: o || null, m: m || null, hs: [] }); groups.get(k).hs.push(h); }
+    for (const g of groups.values()) {
+      for (let i = 0; i < g.hs.length; i += 150) {
+        let q = this.sb.from('sikayetler').update({ atanan_alt: g.m ? g.o : null, atama_yontemi: g.m }).in('hash', g.hs.slice(i, i + 150));
+        if (g.m === 'a') q = q.or('atama_yontemi.is.null,atama_yontemi.eq.a');
+        chk(await q);
+      }
+    }
+  }
+  async deleteUpload(u) { chk(await this.sb.from('yuklemeler').delete().eq('id', u.id)); }
+  async listUploads() {
+    return chk(await this.sb.from('yuklemeler').select('*').order('yuklenme', { ascending: false }).limit(300))
+      .map(x => ({ id: x.id, name: x.dosya, by: x.yukleyen, at: Date.parse(x.yuklenme), from: x.bas, to: x.bit, added: x.eklenen, dupDb: x.tekrar_db, dupFile: x.tekrar_dosya }));
+  }
+  async getTax() { const d = chk(await this.sb.from('ayarlar').select('deger').eq('anahtar', 'taksonomi').maybeSingle()); return d ? d.deger : null; }
+  async saveTax(t) { chk(await this.sb.from('ayarlar').upsert({ anahtar: 'taksonomi', deger: { cats: t.cats }, guncelleme: new Date().toISOString(), guncelleyen: this.email })); }
+  onChange(cb) {
+    const ch = this.sb.channel('radar')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'yuklemeler' }, () => cb('yuklemeler'))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'ayarlar' }, () => cb('ayarlar'))
+      .subscribe();
+    return () => this.sb.removeChannel(ch);
+  }
+}
+function storeErrorText(e) {
+  const msg = (e && e.message) || '';
+  if (e && (e.code === '42501' || /row-level security|permission denied/i.test(msg))) return 'Bu işlem için yetkin yok. Yöneticinden düzenleme yetkisi iste.';
+  if (/JWT|token/i.test(msg)) return 'Oturumun sona erdi. Sayfayı yenileyip tekrar giriş yap.';
+  if (/Failed to fetch|NetworkError|fetch/i.test(msg)) return 'Sunucuya ulaşılamadı. İnternet bağlantını kontrol et.';
+  return 'İşlem tamamlanamadı' + (msg ? ': ' + msg : '.');
+}
+
+/* ============ state ============ */
+const S = {
+  store: null, realStore: null, mode: 'local', demo: false,
+  user: null, me: null, canWrite: true,
+  taxDoc: null, tax: clone(DEFAULT_TAX), C: null, taxV: 0,
+  docs: new Map(), rows: [], capped: false, loading: true,
+  uploads: [],
+  range: null, prev: null, loaded: null, bounds: { min: null, max: null },
+  chans: new Set(CHANNELS.map(c => c.id)),
+  gran: lsGet('sr.gran', 'day'), trendMode: lsGet('sr.tm', 'cat'), focus: '',
+  hidden: { cat: new Set(), ch: new Set(), sub: new Set() },
+  tab: 'panel', openCats: new Set(),
+  rec: { q: '', cat: '', sub: '', meth: '', page: 0 },
+  files: [], ai: null,
+  draft: null, draftDirty: false,
+};
+S.C = compile(S.tax);
+const ruleCache = new Map();
+let rangeGen = 0, unsubChange = null;
+
+function rebuildRows() {
+  const out = [], C = S.C;
+  for (const [docId, doc] of S.docs) {
+    for (const r of doc.rows || []) {
+      let rule = ruleCache.get(r.h);
+      if (rule === undefined) { rule = classifyText(r.t, C); ruleCache.set(r.h, rule); }
+      let s = null, meth;
+      if ((r.m === 'u' || r.m === 'a') && r.o && C.subMap.has(r.o)) { s = r.o; meth = r.m; }
+      else if (rule) { s = rule; meth = 'r'; }
+      else meth = r.m === 'a' ? 'a0' : 'none';
+      const so = s ? C.subMap.get(s) : null;
+      out.push({ doc: docId, h: r.h, d: doc.d, c: r.c, t: r.t, x: r.x, u: r.u, o: r.o, m: r.m, s, cat: so ? so.cat : null, meth });
+    }
+  }
+  out.sort((a, b) => a.d < b.d ? 1 : a.d > b.d ? -1 : 0);
+  S.rows = out;
+}
+
+/* ============ rendering scheduler ============ */
+let rafPending = false;
+function render() { if (rafPending) return; rafPending = true; requestAnimationFrame(() => { rafPending = false; renderNow(); }); }
+function renderNow() {
+  renderStatus(); renderFilters();
+  $('#nRec').textContent = fmt(inRange().length);
+  if (S.tab === 'panel') renderPanel();
+  else if (S.tab === 'kayit') renderRecords();
+  else if (S.tab === 'yukle') renderUploads();
+  else if (S.tab === 'kategori') { if ($('#taxEditor').contains(document.activeElement) && S.draft) updateTaxCounts(); else renderTax(); }
+}
+function toast(msg, kind) {
+  const el = document.createElement('div'); el.className = 'toast' + (kind === 'err' ? ' err' : ''); el.textContent = msg;
+  $('#toasts').appendChild(el); setTimeout(() => el.remove(), kind === 'err' ? 7000 : 4200);
+}
+
+function renderStatus() {
+  let h = '';
+  if (S.demo) h += '<span class="pill demo">Örnek veri</span>';
+  else if (S.mode === 'db') h += `<span class="pill live"><span class="dot"></span>Ekiple paylaşımlı</span><button class="btn ghost sm" data-act="refresh" title="Ekibin son değişikliklerini getir">↻ Yenile</button>`;
+  if (!S.canWrite && !S.demo) h += '<span class="pill">Salt okunur</span>';
+  if (S.email) h += `<details class="usermenu"><summary class="pill">${esc(S.email)}</summary><div class="um"><label class="field"><span>Yeni şifre</span><input type="password" id="newPw" autocomplete="new-password" minlength="8"></label><button class="btn sm" data-act="changePw">Şifreyi değiştir</button><hr><button class="btn sm" data-act="logout">Çıkış yap</button></div></details>`;
+  const st = $('#status'); if (st.contains(document.activeElement)) return; st.innerHTML = h;
+  $('#demoBanner').hidden = !S.demo;
+}
+
+/* ============ filters ============ */
+function inRange(rows = S.rows, r = S.range) { if (!r) return []; return rows.filter(x => x.d >= r.from && x.d <= r.to && S.chans.has(x.c)); }
+function renderFilters() {
+  $('#filters').hidden = !(S.tab === 'panel' || S.tab === 'kayit');
+  if (!S.range) return;
+  $('#dFrom').value = S.range.from; $('#dTo').value = S.range.to;
+  const counts = {}; for (const r of S.rows) if (r.d >= S.range.from && r.d <= S.range.to) counts[r.c] = (counts[r.c] || 0) + 1;
+  const all = S.chans.size === CHANNELS.length;
+  let h = '<span class="flabel">Kanal</span>';
+  h += `<button class="chip" data-ch="*" aria-pressed="${all}">Tümü</button>`;
+  for (const c of CHANNELS) h += `<button class="chip" data-ch="${c.id}" aria-pressed="${!all && S.chans.has(c.id)}">${esc(c.name)} <span class="n">${fmt(counts[c.id] || 0)}</span></button>`;
+  $('#chanChips').innerHTML = h;
+  $$('#gran button').forEach(b => b.setAttribute('aria-pressed', b.dataset.g === S.gran));
+  const p = S.preset || '';
+  $$('#presets button').forEach(b => b.setAttribute('aria-pressed', b.dataset.p === p));
+}
+function setRange(from, to, preset) {
+  if (!from || !to) return;
+  if (from > to) [from, to] = [to, from];
+  S.preset = preset || '';
+  S.range = { from, to };
+  const L = dayDiff(from, to) + 1;
+  S.prev = { from: addDays(from, -L), to: addDays(from, -1) };
+  S.rec.page = 0;
+  loadRange(S.prev.from, to);
+  render();
+}
+async function loadRange(from, to, force) {
+  if (!force && S.loaded && S.loaded.from === from && S.loaded.to === to) return;
+  S.loaded = { from, to }; S.loading = true; const g = ++rangeGen;
+  document.body.classList.add('loading');
+  try { const m = await S.store.loadRange(from, to); if (g !== rangeGen) return; S.docs = m; rebuildRows(); }
+  catch (e) { if (g === rangeGen) toast(storeErrorText(e), 'err'); }
+  finally { if (g === rangeGen) { S.loading = false; document.body.classList.remove('loading'); render(); } }
+}
+function refreshRange() { return S.loaded ? loadRange(S.loaded.from, S.loaded.to, true) : Promise.resolve(); }
+async function presetRange(p) {
+  const today = todayStr();
+  if (p === 'all') {
+    const b = await S.store.bounds(); S.bounds = b;
+    if (!b.min) return setRange(addDays(today, -29), today, 'all');
+    return setRange(b.min, b.max, 'all');
+  }
+  if (p === 'month') return setRange(today.slice(0, 8) + '01', today, 'month');
+  const n = +p; const end = S.bounds.max && S.bounds.max < addDays(today, -n) ? S.bounds.max : today;
+  setRange(addDays(end, -(n - 1)), end, p);
+}
+
+/* ============ aggregation ============ */
+function aggregate() {
+  const { from, to } = S.range, pf = S.prev.from, pt = S.prev.to, g = S.gran;
+  const keys = bucketsFor(from, to, g), kIdx = new Map(keys.map((k, i) => [k, i]));
+  const cur = [], prev = [];
+  for (const r of S.rows) {
+    if (!S.chans.has(r.c)) continue;
+    if (r.d >= from && r.d <= to) cur.push(r); else if (r.d >= pf && r.d <= pt) prev.push(r);
+  }
+  const cnt = (rows, key) => { const m = new Map(); for (const r of rows) { const k = key(r); m.set(k, (m.get(k) || 0) + 1); } return m; };
+  return {
+    keys, kIdx, cur, prev,
+    catCur: cnt(cur, r => r.cat || '_none'), catPrev: cnt(prev, r => r.cat || '_none'),
+    subCur: cnt(cur, r => r.s || '_none'), subPrev: cnt(prev, r => r.s || '_none'),
+  };
+}
+function series(A) {
+  const C = S.C, g = S.gran, n = A.keys.length;
+  const rows = S.focus ? A.cur.filter(r => r.cat === S.focus) : A.cur;
+  const mk = (id, name, color) => ({ id, name, color, values: new Array(n).fill(0) });
+  let list, keyOf, hiddenSet;
+  if (S.trendMode === 'ch') {
+    list = CHANNELS.filter(c => S.chans.has(c.id)).map(c => mk(c.id, c.name, c.color)); keyOf = r => r.c; hiddenSet = S.hidden.ch;
+  } else if (S.trendMode === 'total') {
+    list = [mk('t', S.focus ? C.catMap.get(S.focus)?.name || 'Toplam' : 'Toplam şikayet', 'var(--accent)')]; keyOf = () => 't'; hiddenSet = new Set();
+  } else if (S.focus && C.catMap.has(S.focus)) {
+    const cat = C.catMap.get(S.focus);
+    list = cat.subs.map((sid, i) => mk(sid, C.subMap.get(sid).name, i < 8 ? CAT_COLORS[i] : NONE_COLOR)); keyOf = r => r.s; hiddenSet = S.hidden.sub;
+  } else {
+    list = [...C.catMap.values()].map(c => mk(c.id, c.name, c.color));
+    list.push(mk('_none', 'Sınıflandırılmamış', NONE_COLOR)); keyOf = r => r.cat || '_none'; hiddenSet = S.hidden.cat;
+  }
+  const byId = new Map(list.map(s => [s.id, s]));
+  for (const r of rows) { const s = byId.get(keyOf(r)); const i = A.kIdx.get(bucketKey(r.d, g)); if (s && i != null) s.values[i]++; }
+  if (S.trendMode === 'cat' && !S.focus) { const none = byId.get('_none'); if (none && none.values.every(v => !v)) list.pop(); }
+  list.forEach(s => s.hidden = hiddenSet.has(s.id));
+  return { list, hiddenSet };
+}
+
+/* ============ charts (hand-built SVG) ============ */
+function niceStep(x) { const p = 10 ** Math.floor(Math.log10(x)); const f = x / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * p; }
+function niceTicks(max, n = 4) { const st = Math.max(1, niceStep(max / n)); const top = Math.max(st, Math.ceil(max / st) * st); const t = []; for (let v = 0; v <= top + 1e-9; v += st) t.push(v); return t; }
+let lastChart = null;
+function drawTrend(el, keys, list, kind) {
+  lastChart = { el, keys, list, kind };
+  const W = Math.max(300, Math.floor(el.clientWidth || 800)), H = 290;
+  const M = { l: 44, r: 14, t: 10, b: 28 }, iw = W - M.l - M.r, ih = H - M.t - M.b;
+  const vis = list.filter(s => !s.hidden), n = keys.length;
+  const totals = keys.map((_, i) => vis.reduce((a, s) => a + s.values[i], 0));
+  const ticks = niceTicks(Math.max(1, ...totals)), top = ticks[ticks.length - 1];
+  const y = v => M.t + ih - v / top * ih, band = iw / n;
+  let s = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Şikayet trendi grafiği">`;
+  for (const t of ticks) s += `<line class="grid" x1="${M.l}" x2="${W - M.r}" y1="${y(t)}" y2="${y(t)}"/><text x="${M.l - 8}" y="${y(t) + 4}" text-anchor="end">${fmt(t)}</text>`;
+  s += `<rect class="hl" id="hlBand" x="0" y="${M.t}" width="${band}" height="${ih}"/>`;
+  if (kind === 'area') {
+    const v = vis[0] ? vis[0].values : keys.map(() => 0), col = vis[0] ? vis[0].color : 'var(--accent)';
+    const xs = i => M.l + band * i + band / 2;
+    const line = v.map((val, i) => (i ? 'L' : 'M') + xs(i).toFixed(1) + ' ' + y(val).toFixed(1)).join(' ');
+    s += `<path d="${line} L${xs(n - 1).toFixed(1)} ${y(0)} L${xs(0).toFixed(1)} ${y(0)} Z" style="fill:${col};opacity:.12"/>`;
+    s += `<path d="${line}" fill="none" style="stroke:${col}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+    if (n <= 45) v.forEach((val, i) => { s += `<circle cx="${xs(i)}" cy="${y(val)}" r="${i === n - 1 ? 4 : 2.5}" style="fill:${col};stroke:var(--surface)" stroke-width="2"/>`; });
+    if (n) s += `<text x="${Math.min(xs(n - 1), W - M.r)}" y="${y(v[n - 1]) - 10}" text-anchor="end" style="fill:var(--ink);font-weight:600">${fmt(v[n - 1])}</text>`;
+  } else {
+    const bw = Math.max(2, Math.min(38, band * 0.7));
+    for (let i = 0; i < n; i++) {
+      let acc = 0; const x = M.l + band * i + (band - bw) / 2;
+      const segs = vis.filter(sr => sr.values[i] > 0);
+      segs.forEach((sr, j) => {
+        const v = sr.values[i], y1 = y(acc + v), y0 = y(acc), gap = acc > 0 ? 1.5 : 0, hgt = Math.max(0.8, y0 - y1 - gap);
+        const r = j === segs.length - 1 ? Math.min(3, bw / 2, hgt) : 0;
+        if (r > 0) s += `<path d="M${x} ${y1 + hgt} V${y1 + r} Q${x} ${y1} ${x + r} ${y1} H${x + bw - r} Q${x + bw} ${y1} ${x + bw} ${y1 + r} V${y1 + hgt} Z" style="fill:${sr.color}"/>`;
+        else s += `<rect x="${x}" y="${y1}" width="${bw}" height="${hgt}" style="fill:${sr.color}"/>`;
+        acc += v;
+      });
+    }
+  }
+  s += `<line class="base" x1="${M.l}" x2="${W - M.r}" y1="${y(0)}" y2="${y(0)}"/>`;
+  const every = Math.max(1, Math.ceil(n / Math.max(1, Math.floor(iw / 58))));
+  for (let i = 0; i < n; i += every) s += `<text x="${M.l + band * i + band / 2}" y="${H - 8}" text-anchor="middle">${esc(shortLabel(keys[i], S.gran))}</text>`;
+  s += '</svg><div class="tip" id="tip" hidden></div>';
+  el.innerHTML = s;
+  const svg = el.querySelector('svg'), tip = el.querySelector('#tip'), hl = el.querySelector('#hlBand');
+  const show = ev => {
+    const r = svg.getBoundingClientRect(), px = ev.clientX - r.left;
+    const i = Math.floor((px - M.l) / band);
+    if (i < 0 || i >= n || px > W - M.r) { hide(); return; }
+    hl.setAttribute('x', M.l + band * i); hl.setAttribute('width', band); hl.classList.add('on');
+    const items = vis.map(sr => ({ n: sr.name, c: sr.color, v: sr.values[i] })).filter(o => o.v > 0).sort((a, b) => b.v - a.v);
+    let t = `<b>${esc(longLabel(keys[i], S.gran))}</b>`;
+    for (const o of items.slice(0, 10)) t += `<div class="r"><span><i style="background:${o.c}"></i>${esc(o.n)}</span><span>${fmt(o.v)}</span></div>`;
+    if (items.length > 10) t += `<div class="r muted"><span>+${items.length - 10} daha</span><span></span></div>`;
+    if (kind !== 'area') t += `<div class="r tot"><span>Toplam</span><span>${fmt(totals[i])}</span></div>`;
+    if (!items.length) t += '<div class="muted">Kayıt yok</div>';
+    tip.innerHTML = t; tip.hidden = false;
+    const tx = M.l + band * i + band / 2, tw = tip.offsetWidth;
+    tip.style.left = Math.max(0, Math.min(W - tw, tx + 14 + tw > W ? tx - tw - 14 : tx + 14)) + 'px';
+    tip.style.top = '12px';
+  };
+  const hide = () => { tip.hidden = true; hl.classList.remove('on'); };
+  svg.addEventListener('pointermove', show); svg.addEventListener('pointerleave', hide);
+}
+function sparkline(vals, color) {
+  const w = 84, h = 26, n = vals.length, mx = Math.max(1, ...vals);
+  if (n < 2) return '';
+  const pts = vals.map((v, i) => (i / (n - 1) * (w - 4) + 2).toFixed(1) + ',' + (h - 3 - v / mx * (h - 6)).toFixed(1));
+  const last = pts[n - 1].split(',');
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true"><polyline points="${pts.join(' ')}" fill="none" style="stroke:${color}" stroke-width="1.6" stroke-linejoin="round"/><circle cx="${last[0]}" cy="${last[1]}" r="2.5" style="fill:${color}"/></svg>`;
+}
+let roTimer = null;
+const ro = new ResizeObserver(() => { clearTimeout(roTimer); roTimer = setTimeout(() => { if (lastChart && S.tab === 'panel' && lastChart.el.isConnected) drawTrend(lastChart.el, lastChart.keys, lastChart.list, lastChart.kind); }, 120); });
+
+/* ============ panel ============ */
+function deltaHtml(cur, prev, compact) {
+  if (!prev && !cur) return '<span class="delta flat">–</span>';
+  if (!prev) return '<span class="delta up" title="Önceki dönemde kayıt yok">yeni</span>';
+  const d = (cur - prev) / prev * 100;
+  if (Math.abs(d) < 0.5) return '<span class="delta flat">≈ 0</span>';
+  const up = d > 0;
+  return `<span class="delta ${up ? 'up' : 'down'}" title="Önceki dönem: ${fmt(prev)}">${up ? '▲' : '▼'} ${fmtPct(Math.abs(d))}${compact ? '' : ''}</span>`;
+}
+function renderPanel() {
+  const empty = $('#panelEmpty'), body = $('#panelBody');
+  if (!S.range) { empty.hidden = false; body.hidden = true; empty.innerHTML = '<div class="empty"><h3>Kayıtlar yükleniyor…</h3></div>'; return; }
+  const A = aggregate(), C = S.C;
+  const anyData = S.rows.length > 0 || S.bounds.max;
+  if (!A.cur.length) {
+    empty.hidden = false; body.hidden = true;
+    if (!anyData && !S.loading) {
+      empty.innerHTML = `<div class="empty"><h3>Henüz şikayet verisi yok</h3><p>AI Asistan, Web Form, Mobil Form ve Çağrı Merkezi kayıtlarını Excel olarak yükle. Panel tarihe ve kanala göre trendi, kategori dağılımını ve en çok artan konuları gösterecek.</p><div class="row">${S.canWrite ? '<button class="btn primary" data-act="goUpload">Excel yükle</button>' : ''}<button class="btn" data-act="demo">Örnek veriyle göz at</button></div></div>`;
+    } else {
+      empty.innerHTML = `<div class="empty"><h3>${S.loading ? 'Kayıtlar yükleniyor…' : 'Bu dönemde kayıt yok'}</h3><p>${S.loading ? '' : 'Seçili tarih aralığında ve kanallarda şikayet bulunamadı. Dönemi genişlet ya da kanal filtresini değiştir.'}</p>${S.loading ? '' : '<div class="row"><button class="btn" data-p2="all">Tüm veriyi göster</button></div>'}</div>`;
+    }
+    return;
+  }
+  empty.hidden = true; body.hidden = false;
+
+  /* KPIs */
+  const days = dayDiff(S.range.from, S.range.to) + 1;
+  const total = A.cur.length, ptotal = A.prev.length;
+  const byM = { r: 0, a: 0, u: 0, none: 0 };
+  for (const r of A.cur) { if (r.meth === 'a0' || r.meth === 'none') byM.none++; else byM[r.meth]++; }
+  let topCat = null, topN = 0; for (const [k, v] of A.catCur) if (k !== '_none' && v > topN) { topN = v; topCat = k; }
+  const classified = total - byM.none;
+  $('#kpis').innerHTML = `
+    <div class="kpi"><span class="lab">Toplam şikayet</span><span class="val">${fmt(total)}</span><span class="meta">${deltaHtml(total, ptotal)}<span>önceki ${days} güne göre</span></span></div>
+    <div class="kpi"><span class="lab">Günlük ortalama</span><span class="val">${(total / days).toLocaleString('tr-TR', { maximumFractionDigits: 1 })}</span><span class="meta">${fmtDate(S.range.from)} – ${fmtDate(S.range.to)}</span></div>
+    <div class="kpi"><span class="lab">Sınıflandırılan</span><span class="val">${fmtPct(pct(classified, total))}</span>
+      <div class="meter" title="Kural ${fmt(byM.r)} · AI ${fmt(byM.a)} · Manuel ${fmt(byM.u)} · Eşleşmeyen ${fmt(byM.none)}"><span style="width:${pct(byM.r, total)}%;background:var(--accent)"></span><span style="width:${pct(byM.a, total)}%;background:var(--c7)"></span><span style="width:${pct(byM.u, total)}%;background:var(--c4)"></span></div>
+      <span class="meta"><span>Kural ${fmt(byM.r)} · AI ${fmt(byM.a)} · Manuel ${fmt(byM.u)}</span>${byM.none && S.canWrite ? `<button class="btn sm" data-act="aiNone">${fmt(byM.none)} eşleşmeyeni AI ile sınıflandır</button>` : byM.none ? `<span>${fmt(byM.none)} eşleşmeyen</span>` : ''}</span></div>
+    <div class="kpi"><span class="lab">En çok şikayet alan</span><span class="val txt">${topCat ? esc(C.catMap.get(topCat).name) : '–'}</span><span class="meta">${topCat ? `${fmt(topN)} kayıt · ${fmtPct(pct(topN, total))} pay · ${deltaHtml(topN, A.catPrev.get(topCat) || 0)}` : ''}</span></div>`;
+
+  /* trend */
+  $$('#trendMode button').forEach(b => b.setAttribute('aria-pressed', b.dataset.m === S.trendMode));
+  const fsel = $('#focusCat');
+  fsel.innerHTML = '<option value="">Tüm kategoriler</option>' + [...C.catMap.values()].map(c => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');
+  if (S.focus && !C.catMap.has(S.focus)) S.focus = '';
+  fsel.value = S.focus;
+  const { list } = series(A);
+  const gName = { day: 'günlük', week: 'haftalık', month: 'aylık' }[S.gran];
+  const what = S.trendMode === 'ch' ? 'kanallara göre' : S.trendMode === 'total' ? 'toplam' : S.focus ? 'alt kategorilere göre' : 'kategorilere göre';
+  $('#trendHint').textContent = `${S.focus ? C.catMap.get(S.focus).name + ' · ' : ''}${gName}, ${what}`;
+  $('#trendLegend').innerHTML = S.trendMode === 'total' ? '' : list.map(s => `<button class="lg" data-lg="${esc(s.id)}" aria-pressed="${!s.hidden}"><i style="background:${s.color}"></i>${esc(s.name)}</button>`).join('');
+  const chartEl = $('#trendChart');
+  drawTrend(chartEl, A.keys, list, S.trendMode === 'total' ? 'area' : 'stack');
+  ro.observe(chartEl);
+  // table view
+  const vis = list.filter(s => !s.hidden);
+  let tt = '<table><thead><tr><th>Dönem</th>' + vis.map(s => `<th class="num">${esc(s.name)}</th>`).join('') + (vis.length > 1 ? '<th class="num">Toplam</th>' : '') + '</tr></thead><tbody>';
+  A.keys.forEach((k, i) => { const tot = vis.reduce((a, s) => a + s.values[i], 0); tt += `<tr><td>${esc(longLabel(k, S.gran))}</td>` + vis.map(s => `<td class="num">${fmt(s.values[i])}</td>`).join('') + (vis.length > 1 ? `<td class="num"><b>${fmt(tot)}</b></td>` : '') + '</tr>'; });
+  $('#trendTable').innerHTML = tt + '</tbody></table>';
+
+  /* breakdown */
+  const cats = [...C.catMap.values()].map(c => ({ id: c.id, name: c.name, color: c.color, n: A.catCur.get(c.id) || 0, p: A.catPrev.get(c.id) || 0 }));
+  if (A.catCur.get('_none')) cats.push({ id: '_none', name: 'Sınıflandırılmamış', color: NONE_COLOR, n: A.catCur.get('_none'), p: A.catPrev.get('_none') || 0 });
+  cats.sort((a, b) => b.n - a.n);
+  const mx = Math.max(1, ...cats.map(c => c.n));
+  let bh = '';
+  for (const c of cats) {
+    const open = S.openCats.has(c.id) && c.id !== '_none';
+    bh += `<div class="brow${open ? ' open' : ''}" data-cat="${esc(c.id)}" role="button" tabindex="0" aria-expanded="${open}"><span class="nm"><span class="car">${c.id === '_none' ? '' : '▶'}</span><i style="background:${c.color}"></i><span>${esc(c.name)}</span></span><span class="bar"><span style="width:${c.n / mx * 100}%;background:${c.color}"></span></span><span class="num">${fmt(c.n)}</span><span class="num muted">${fmtPct(pct(c.n, total))}</span><span class="num">${deltaHtml(c.n, c.p)}</span></div>`;
+    if (open) {
+      const subs = C.catMap.get(c.id).subs.map(sid => ({ id: sid, name: C.subMap.get(sid).name, n: A.subCur.get(sid) || 0, p: A.subPrev.get(sid) || 0 })).sort((a, b) => b.n - a.n);
+      for (const s of subs) bh += `<div class="brow sub"><span class="nm"><span>${esc(s.name)}</span></span><span class="bar"><span style="width:${s.n / mx * 100}%;background:${c.color};opacity:.55"></span></span><span class="num">${fmt(s.n)}</span><span class="num muted">${fmtPct(pct(s.n, c.n || 1))}</span><span class="num">${deltaHtml(s.n, s.p)}</span></div>`;
+    }
+  }
+  $('#catBreak').innerHTML = bh;
+
+  /* matrix */
+  const chs = CHANNELS.filter(c => S.chans.has(c.id));
+  const mxm = new Map(); const colTot = {};
+  for (const r of A.cur) { const k = (r.cat || '_none') + '|' + r.c; mxm.set(k, (mxm.get(k) || 0) + 1); colTot[r.c] = (colTot[r.c] || 0) + 1; }
+  let mh = '<table class="mx"><thead><tr><th>Kategori</th>' + chs.map(c => `<th class="num" title="${esc(c.name)}">${esc(c.short)}</th>`).join('') + '<th class="num">Toplam</th></tr></thead><tbody>';
+  const colMax = {}; for (const [k, v] of mxm) { if (k.startsWith('_none|')) continue; const c = k.split('|')[1]; colMax[c] = Math.max(colMax[c] || 0, v); }
+  for (const c of cats) {
+    mh += `<tr><td><span class="nm" style="display:flex;gap:7px;align-items:center"><i style="width:9px;height:9px;border-radius:2px;background:${c.color};flex:none"></i>${esc(c.name)}</span></td>`;
+    for (const ch of chs) { const v = mxm.get(c.id + '|' + ch.id) || 0; const share = colTot[ch.id] ? v / colTot[ch.id] : 0; mh += `<td class="num" title="${esc(ch.name)} içindeki payı: ${fmtPct(share * 100, 1)}">${v && c.id !== '_none' ? `<i class="heat" style="opacity:${(v / (colMax[ch.id] || 1) * 0.34).toFixed(3)}"></i>` : ''}<span>${fmt(v)}</span></td>`; }
+    mh += `<td class="num"><span><b>${fmt(c.n)}</b></span></td></tr>`;
+  }
+  mh += '<tr class="total"><td>Toplam</td>' + chs.map(c => `<td class="num">${fmt(colTot[c.id] || 0)}</td>`).join('') + `<td class="num">${fmt(total)}</td></tr></tbody></table>`;
+  $('#matrix').innerHTML = mh;
+
+  /* movers */
+  const subSeries = new Map();
+  for (const r of A.cur) { if (!r.s) continue; let a = subSeries.get(r.s); if (!a) { a = new Array(A.keys.length).fill(0); subSeries.set(r.s, a); } const i = A.kIdx.get(bucketKey(r.d, S.gran)); if (i != null) a[i]++; }
+  const mv = [];
+  for (const so of C.subs) { const n = A.subCur.get(so.id) || 0, p = A.subPrev.get(so.id) || 0; if (n >= 3 && n > p) mv.push({ so, n, p, d: n - p }); }
+  mv.sort((a, b) => b.d - a.d || b.n - a.n);
+  $('#movers').innerHTML = mv.length ? mv.slice(0, 8).map(m => {
+    const col = C.catMap.get(m.so.cat).color;
+    return `<div class="mv"><div class="t"><b>${esc(m.so.name === 'Diğer' ? m.so.catName + ' · Diğer' : m.so.name)}</b><small>${esc(m.so.catName)} · ${fmt(m.p)} → ${fmt(m.n)}</small></div>${sparkline(subSeries.get(m.so.id) || [], col)}<div class="num"><b>+${fmt(m.d)}</b><br>${deltaHtml(m.n, m.p)}</div></div>`;
+  }).join('') : '<p class="muted" style="margin:0">Önceki döneme göre belirgin artış gösteren alt kategori yok.</p>';
+}
+
+/* ============ records ============ */
+const METH = { r: 'Kural', a: 'AI', u: 'Manuel', a0: 'AI: eşleşmedi', none: 'Eşleşmedi' };
+const METH_CLS = { r: '', a: 'a', u: 'u', a0: 'none', none: 'none' };
+const PAGE = 50;
+function recFiltered() {
+  let rows = inRange(); const { q, cat, sub: sb, meth } = S.rec;
+  if (cat) rows = rows.filter(r => cat === '_none' ? !r.cat : r.cat === cat);
+  if (sb) rows = rows.filter(r => r.s === sb);
+  if (meth) rows = rows.filter(r => meth === 'none' ? (r.meth === 'none' || r.meth === 'a0') : r.meth === meth);
+  if (q) { const nq = norm(q).trim(); if (nq) rows = rows.filter(r => norm(r.t).includes(nq)); }
+  return rows;
+}
+function catOptions(sel, withAll) {
+  const C = S.C; let h = withAll ? '<option value="">Tüm kategoriler</option><option value="_none">Sınıflandırılmamış</option>' : '';
+  for (const c of C.catMap.values()) h += `<option value="${esc(c.id)}"${sel === c.id ? ' selected' : ''}>${esc(c.name)}</option>`;
+  return h;
+}
+let subOptsCache = { v: -1, html: '' };
+function subOptionsHtml() {
+  if (subOptsCache.v === S.taxV) return subOptsCache.html;
+  const C = S.C; let h = '';
+  for (const c of C.catMap.values()) h += `<optgroup label="${esc(c.name)}">` + c.subs.map(sid => `<option value="${esc(sid)}">${esc(C.subMap.get(sid).name)}</option>`).join('') + '</optgroup>';
+  subOptsCache = { v: S.taxV, html: h }; return h;
+}
+function renderRecords() {
+  const C = S.C, R = S.rec;
+  if (R.cat && R.cat !== '_none' && !C.catMap.has(R.cat)) R.cat = '';
+  $('#recCat').innerHTML = catOptions(R.cat, true); $('#recCat').value = R.cat;
+  const subs = R.cat && R.cat !== '_none' ? C.catMap.get(R.cat).subs : [];
+  $('#recSub').innerHTML = '<option value="">Tüm alt kategoriler</option>' + subs.map(sid => `<option value="${esc(sid)}">${esc(C.subMap.get(sid).name)}</option>`).join('');
+  if (!subs.includes(R.sub)) R.sub = '';
+  $('#recSub').value = R.sub; $('#recSub').disabled = !subs.length; $('#recMeth').value = R.meth;
+  if ($('#recQ').value !== R.q && document.activeElement !== $('#recQ')) $('#recQ').value = R.q;
+
+  const rows = recFiltered();
+  const unm = rows.filter(r => r.meth === 'none').length;
+  const reAI = rows.filter(r => r.m !== 'u').length;
+  let act = `<span class="muted">${fmt(rows.length)} kayıt</span><span style="flex:1"></span>`;
+  if (S.canWrite) {
+    if (unm) act += `<button class="btn" data-act="aiFiltNone">Eşleşmeyen ${fmt(unm)} kaydı AI ile sınıflandır</button>`;
+    if (reAI) act += `<button class="btn ghost" data-act="aiFiltAll" data-confirm="${fmt(reAI)} kayıt AI'a gönderilecek. Onaylıyor musun?">Filtredekileri AI ile yeniden sınıflandır</button>`;
+  }
+  act += `<button class="btn" data-act="export">Excel'e aktar</button>`;
+  $('#recActions').innerHTML = act;
+
+  const pages = Math.max(1, Math.ceil(rows.length / PAGE)); if (R.page >= pages) R.page = pages - 1;
+  const slice = rows.slice(R.page * PAGE, R.page * PAGE + PAGE);
+  const opts = subOptionsHtml();
+  let h = '<thead><tr><th>Tarih</th><th>Kanal</th><th>Şikayet</th><th>Kategori</th><th>Yöntem</th></tr></thead><tbody>';
+  if (!slice.length) h += `<tr><td colspan="5" class="muted" style="padding:28px;text-align:center">${S.rows.length ? 'Filtrelere uyan kayıt yok.' : 'Henüz kayıt yok. Veri yükle sekmesinden Excel ekle.'}</td></tr>`;
+  for (const r of slice) {
+    const so = r.s ? C.subMap.get(r.s) : null;
+    const key = esc(r.doc + '|' + r.h);
+    const sel = `<select data-row="${key}" aria-label="Kategori"${S.canWrite ? '' : ' disabled'}>${so ? '' : '<option value="" selected disabled>Kategori seç…</option>'}${r.o ? '<option value="__rule">↺ Kurala bırak</option>' : ''}${opts}</select>`;
+    h += `<tr><td class="num" style="text-align:left">${fmtDate(r.d)}</td><td><span class="chn">${esc(CH[r.c] ? CH[r.c].name : r.c)}</span></td><td class="txt"><div class="clamp" title="Tamamını görmek için tıkla">${esc(r.t)}</div>${r.x ? `<small class="muted">#${esc(r.x)}</small>` : ''}</td><td>${so ? `<div style="font-size:12px;color:var(--muted);margin-bottom:3px">${esc(so.catName)}</div>` : ''}${sel}</td><td><span class="tag ${METH_CLS[r.meth]}">${METH[r.meth]}</span></td></tr>`;
+  }
+  $('#recTable').innerHTML = h + '</tbody>';
+  slice.forEach((r, i) => { const s = $('#recTable').querySelectorAll('select')[i]; if (s && r.s) s.value = r.s; });
+  $('#recPager').innerHTML = rows.length > PAGE ? `<span>${fmt(R.page * PAGE + 1)}–${fmt(Math.min(rows.length, (R.page + 1) * PAGE))} / ${fmt(rows.length)}</span><span class="fgroup"><button class="btn sm" data-pg="-1"${R.page ? '' : ' disabled'}>‹ Önceki</button><span>Sayfa ${R.page + 1} / ${pages}</span><button class="btn sm" data-pg="1"${R.page < pages - 1 ? '' : ' disabled'}>Sonraki ›</button></span>` : '';
+}
+
+/* ============ overrides (AI + manual) ============ */
+async function applyOverrides(upd) {
+  const list = [];
+  for (const [docId, m] of upd) {
+    const cur = S.docs.get(docId);
+    for (const [h, v] of m) {
+      list.push({ h, o: v.m === 'rule' ? null : v.o, m: v.m === 'rule' ? null : v.m });
+      const r = cur && cur.rows.find(x => x.h === h);
+      if (r && !(v.m === 'a' && r.m === 'u')) { if (v.m === 'rule') { r.o = null; r.m = null; } else { r.o = v.o; r.m = v.m; } }
+    }
+  }
+  rebuildRows(); render();
+  await S.store.setOverrides(list);
+}
+async function authToken() { if (!SB) return null; const { data } = await SB.auth.getSession(); return data.session ? data.session.access_token : null; }
+async function aiBatch(chunk, C, signal) {
+  const body = {
+    items: chunk.map((r, i) => ({ i, c: CH[r.c] ? CH[r.c].name : r.c, t: r.t.replace(/\s+/g, ' ').slice(0, 500) })),
+    codes: C.subs.map(s => ({ id: s.id, cat: s.catName, name: s.name, kw: s.raw.slice(0, 6) })),
+  };
+  const tok = await authToken();
+  const res = await fetch('/api/classify', { method: 'POST', signal, headers: { 'content-type': 'application/json', ...(tok ? { authorization: 'Bearer ' + tok } : {}) }, body: JSON.stringify(body) });
+  let j = null; try { j = await res.json(); } catch {}
+  if (!res.ok) { const e = new Error((j && j.error) || ('HTTP ' + res.status)); e.status = res.status; throw e; }
+  return (j && Array.isArray(j.items)) ? j.items : [];
+}
+function aiErrText(e) {
+  if (e.status === 401) return 'AI için oturumun geçersiz. Sayfayı yenileyip tekrar giriş yap.';
+  if (e.status === 403) return 'AI sınıflandırma için düzenleme yetkin yok.';
+  if (e.status === 429) return 'AI servisi şu an yoğun ya da kullanım limitine ulaşıldı. Biraz sonra tekrar dene.';
+  if (e.status === 404) return 'AI servisi bulunamadı. Site Netlify üzerinde mi çalışıyor?';
+  return 'AI sınıflandırma durdu: ' + (e.message || 'bilinmeyen hata');
+}
+function aiBar() {
+  const a = S.ai; $('#aiBar').hidden = !a; if (!a) return;
+  $('#aiTxt').textContent = `AI sınıflandırıyor: ${fmt(a.done)} / ${fmt(a.total)} · ${fmt(a.ok)} kategori atandı`;
+  $('#aiProg').style.width = (a.done / a.total * 100) + '%';
+}
+async function runAI(rows) {
+  if (S.ai) { toast('Bir AI sınıflandırması zaten sürüyor.'); return; }
+  rows = rows.filter(r => r.m !== 'u');
+  if (!rows.length) { toast('AI ile sınıflandırılacak kayıt yok.'); return; }
+  if (S.demo) { toast('Örnek veride AI sınıflandırma kapalı. Gerçek verinle dene.'); return; }
+  const ctl = new AbortController(); S.ai = { total: rows.length, done: 0, ok: 0, ctl }; aiBar();
+  const C = S.C; let stopMsg = null, failed = 0;
+  try {
+    for (let i = 0; i < rows.length && !ctl.signal.aborted; i += AI_BATCH) {
+      const chunk = rows.slice(i, i + AI_BATCH);
+      let arr;
+      try { arr = await aiBatch(chunk, C, ctl.signal); }
+      catch (e) {
+        if (e.name === 'AbortError') break;
+        if (e.status >= 500 && e.status !== 501 && ++failed < 3) { S.ai.done += chunk.length; aiBar(); continue; }
+        stopMsg = aiErrText(e); break;
+      }
+      const upd = new Map();
+      for (const it of arr) {
+        const r = chunk[Number(it && it.i)]; if (!r) continue;
+        const k = String((it && it.k) ?? '').trim(), o = C.subMap.has(k) ? k : null;
+        if (!upd.has(r.doc)) upd.set(r.doc, new Map());
+        upd.get(r.doc).set(r.h, { o, m: 'a' }); if (o) S.ai.ok++;
+      }
+      if (upd.size) await applyOverrides(upd);
+      S.ai.done += chunk.length; aiBar();
+    }
+  } catch (e) { stopMsg = storeErrorText(e); }
+  finally {
+    const a = S.ai; S.ai = null; aiBar();
+    toast(stopMsg || `AI ${fmt(a.done)} kaydı inceledi, ${fmt(a.ok)} tanesine kategori atadı.`, stopMsg ? 'err' : '');
+  }
+}
+
+/* ============ export ============ */
+async function exportXlsx() {
+  const rows = recFiltered();
+  if (!rows.length) { toast('Aktarılacak kayıt yok.'); return; }
+  if (!window.XLSX) { toast('Excel kütüphanesi yüklenemedi. Sayfayı yenileyip tekrar dene.', 'err'); return; }
+  const C = S.C, chs = CHANNELS.filter(c => S.chans.has(c.id));
+  const aoa = [['Tarih', 'Kanal', 'Şikayet', 'Kategori', 'Alt kategori', 'Yöntem', 'Kaynak ID']];
+  const cnt = new Map();
+  for (const r of rows) {
+    const so = r.s ? C.subMap.get(r.s) : null;
+    aoa.push([fmtDate(r.d), CH[r.c] ? CH[r.c].name : r.c, r.t, so ? so.catName : '', so ? so.name : '', METH[r.meth], r.x || '']);
+    const k = (r.s || '_none') + '|' + r.c; cnt.set(k, (cnt.get(k) || 0) + 1);
+  }
+  const sum = [['Kategori', 'Alt kategori', ...chs.map(c => c.name), 'Toplam']];
+  for (const so of [...C.subs, { id: '_none', catName: 'Sınıflandırılmamış', name: '' }]) {
+    const vals = chs.map(c => cnt.get(so.id + '|' + c.id) || 0), t = vals.reduce((a, b) => a + b, 0);
+    if (t) sum.push([so.catName, so.name, ...vals, t]);
+  }
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa), 'Kayıtlar');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sum), 'Özet');
+  const buf = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
+  a.download = `sikayetler_${S.range.from}_${S.range.to}.xlsx`;
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+}
+
+/* ============ upload ============ */
+const RX = {
+  date: /tarih|date|zaman|olusturma|created|time|gun/,
+  text: /aciklama|metin|sikayet|mesaj|text|description|icerik|transcript|konu|yorum|talep|detay|not/,
+  ch: /kanal|channel|kaynak|source|platform/,
+  id: /^ ?(id|no|numara|ticket|kayit no|kayit id|case|talep no|vaka)/,
+};
+async function addFiles(list) {
+  if (!S.canWrite) return;
+  if (!window.XLSX) { toast('Excel okuyucu yüklenemedi. İnternet bağlantını kontrol edip sayfayı yenile.', 'err'); return; }
+  for (const file of list) {
+    try {
+      const buf = await file.arrayBuffer();
+      const isCsv = /\.csv$/i.test(file.name);
+      const wb = XLSX.read(buf, { type: 'array', raw: isCsv, cellDates: false });
+      const f = { id: uid('f'), name: file.name, wb, sheets: wb.SheetNames, sheet: wb.SheetNames[0], d1904: !!(wb.Workbook && wb.Workbook.WBProps && wb.Workbook.WBProps.date1904) };
+      loadSheet(f); S.files.push(f);
+    } catch (e) { toast(`${file.name} okunamadı. Dosyanın bozuk olmadığından emin ol.`, 'err'); }
+  }
+  render();
+}
+function loadSheet(f) {
+  const ws = f.wb.Sheets[f.sheet];
+  const aoa = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: '', blankrows: false });
+  let hr = 0; for (let i = 0; i < Math.min(15, aoa.length); i++) { if (aoa[i].filter(v => String(v).trim() !== '').length >= 2) { hr = i; break; } }
+  const width = Math.max(0, ...aoa.slice(hr, hr + 50).map(r => r.length));
+  f.header = Array.from({ length: width }, (_, i) => String((aoa[hr] || [])[i] ?? '').trim() || `Sütun ${i + 1}`);
+  f.data = aoa.slice(hr + 1);
+  const H = f.header.map(x => norm(x));
+  const find = rx => H.findIndex(x => rx.test(x));
+  const saved = lsGet('sr.map.' + cyrb53(f.header.join('|')), null);
+  if (saved && saved.w === width) { f.map = saved.map; }
+  else {
+    let date = find(RX.date); if (date < 0) date = f.header.findIndex((_, i) => f.data.slice(0, 20).filter(r => parseDate(r[i], f.d1904)).length >= 10);
+    let text = H.map((x, i) => RX.text.test(x) && i !== date ? i : -1).filter(i => i >= 0);
+    const avgLen = i => f.data.slice(0, 60).reduce((a, r) => a + String(r[i] ?? '').length, 0);
+    if (text.length > 1) text = [text.sort((a, b) => avgLen(b) - avgLen(a))[0]];
+    if (!text.length) { const c = f.header.map((_, i) => i).filter(i => i !== date).sort((a, b) => avgLen(b) - avgLen(a)); if (c.length) text = [c[0]]; }
+    const chCol = find(RX.ch), idCol = H.findIndex(x => RX.id.test(x));
+    f.map = { date, text, chMode: chCol >= 0 ? 'col' : 'fixed', ch: guessChannel(f.name), chCol: chCol >= 0 ? chCol : (f.header.length > 1 ? 0 : -1), chMap: {}, id: idCol };
+  }
+  refreshChMap(f); parseFile(f);
+}
+function refreshChMap(f) {
+  if (f.map.chMode !== 'col' || f.map.chCol < 0) { f.chValues = []; return; }
+  const counts = new Map();
+  for (const r of f.data) { const v = String(r[f.map.chCol] ?? '').trim(); if (v) counts.set(v, (counts.get(v) || 0) + 1); }
+  f.chValues = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 40);
+  for (const [v] of f.chValues) if (!(v in f.map.chMap)) f.map.chMap[v] = guessChannel(v);
+}
+function parseFile(f) {
+  const m = f.map, rows = [], seen = new Set();
+  let noDate = 0, noText = 0, noCh = 0, dupFile = 0;
+  for (const r of f.data) {
+    const d = m.date >= 0 ? parseDate(r[m.date], f.d1904) : null;
+    const t = m.text.map(i => String(r[i] ?? '').trim()).filter(Boolean).join(' · ').replace(/\s+/g, ' ').slice(0, 2000);
+    if (!d && !t) continue;
+    if (!d) { noDate++; continue; }
+    if (t.length < 2) { noText++; continue; }
+    const c = m.chMode === 'fixed' ? m.ch : (m.chMap[String(r[m.chCol] ?? '').trim()] || '');
+    if (!CH[c]) { noCh++; continue; }
+    const h = rowHash(d, c, t);
+    if (seen.has(h)) { dupFile++; continue; }
+    seen.add(h);
+    const x = m.id >= 0 ? String(r[m.id] ?? '').trim().slice(0, 60) : '';
+    rows.push({ d, c, t, h, x });
+  }
+  let min = null, max = null; for (const r of rows) { if (!min || r.d < min) min = r.d; if (!max || r.d > max) max = r.d; }
+  f.parsed = { rows, noDate, noText, noCh, dupFile, min, max, total: f.data.length };
+  f.result = null;
+}
+function colOptions(f, sel, allowNone) {
+  return (allowNone ? `<option value="-1"${sel < 0 ? ' selected' : ''}>— Yok —</option>` : '') + f.header.map((h, i) => `<option value="${i}"${i === sel ? ' selected' : ''}>${esc(h)}</option>`).join('');
+}
+const chOptions = (sel, skipLabel) => `<option value=""${!sel ? ' selected' : ''}>${skipLabel || 'Kanal seç…'}</option>` + CHANNELS.map(c => `<option value="${c.id}"${c.id === sel ? ' selected' : ''}>${esc(c.name)}</option>`).join('');
+function fileCard(f) {
+  const m = f.map, P = f.parsed;
+  const sheetSel = f.sheets.length > 1 ? `<select data-fsheet="${f.id}" aria-label="Sayfa">${f.sheets.map(s => `<option${s === f.sheet ? ' selected' : ''}>${esc(s)}</option>`).join('')}</select>` : '';
+  let h = `<div class="fcard" data-fid="${f.id}"><div class="fcard-h"><b>${esc(f.name)}</b><span class="fgroup">${sheetSel}<button class="btn ghost sm" data-act="fRemove" data-fid="${f.id}">Kaldır</button></span></div>`;
+  h += `<div class="maprow">
+    <label class="field"><span>Tarih sütunu</span><select data-fm="date" data-fid="${f.id}">${m.date < 0 ? '<option value="-1" selected>Seç…</option>' : ''}${colOptions(f, m.date)}</select></label>
+    <div class="field"><span>Şikayet metni (bir veya birkaç sütun)</span><div class="checks">${f.header.map((x, i) => i === m.date ? '' : `<button class="chip" data-ftext="${i}" data-fid="${f.id}" aria-pressed="${m.text.includes(i)}">${esc(x)}</button>`).join('')}</div></div>
+    <div class="field"><span>Kanal</span>
+      <div class="seg"><button data-fchmode="fixed" data-fid="${f.id}" aria-pressed="${m.chMode === 'fixed'}">Tüm dosya tek kanal</button><button data-fchmode="col" data-fid="${f.id}" aria-pressed="${m.chMode === 'col'}">Sütundan oku</button></div>
+      ${m.chMode === 'fixed' ? `<select data-fm="ch" data-fid="${f.id}">${chOptions(m.ch)}</select>` : `<select data-fm="chCol" data-fid="${f.id}">${colOptions(f, m.chCol)}</select>`}
+    </div>
+  </div>`;
+  if (m.chMode === 'col' && f.chValues.length) {
+    h += `<div class="field"><span>Kanal değerlerini eşleştir</span><div class="chmap">${f.chValues.map(([v, n]) => `<code title="${esc(v)}">${esc(v)} <span class="muted">(${fmt(n)})</span></code><select data-fchv="${esc(v)}" data-fid="${f.id}">${chOptions(m.chMap[v], 'Atla')}</select>`).join('')}</div></div>`;
+  }
+  h += `<label class="field" style="max-width:320px"><span>Kayıt ID sütunu (isteğe bağlı)</span><select data-fm="id" data-fid="${f.id}">${colOptions(f, m.id, true)}</select></label>`;
+  const skipped = P.noDate + P.noText + P.noCh;
+  h += `<div class="stats"><span><b>${fmt(P.rows.length)}</b> geçerli kayıt</span>${P.min ? `<span>Tarih aralığı <b>${fmtDate(P.min)} – ${fmtDate(P.max)}</b></span>` : ''}${P.dupFile ? `<span><b>${fmt(P.dupFile)}</b> dosya içinde tekrar</span>` : ''}${P.noDate ? `<span><b>${fmt(P.noDate)}</b> tarihi okunamadı</span>` : ''}${P.noText ? `<span><b>${fmt(P.noText)}</b> metni boş</span>` : ''}${P.noCh ? `<span><b>${fmt(P.noCh)}</b> kanalı belirsiz</span>` : ''}</div>`;
+  if (P.rows.length) {
+    h += '<div class="tbl-wrap"><table class="preview"><thead><tr><th>Tarih</th><th>Kanal</th><th>Metin</th><th>Kural sonucu</th></tr></thead><tbody>';
+    for (const r of P.rows.slice(0, 5)) { const s = classifyText(r.t, S.C), so = s ? S.C.subMap.get(s) : null; h += `<tr><td>${fmtDate(r.d)}</td><td class="chn">${esc(CH[r.c].name)}</td><td><div class="clamp">${esc(r.t)}</div></td><td>${so ? esc(so.catName + ' › ' + so.name) : '<span class="tag none">Eşleşmedi</span>'}</td></tr>`; }
+    h += '</tbody></table></div>';
+  } else if (skipped && m.chMode === 'fixed' && !m.ch) h += '<p class="muted" style="margin:0">Kayıtların hangi kanaldan geldiğini seç.</p>';
+  if (f.result) {
+    const R = f.result;
+    h += `<div class="result"><span><b>${fmt(R.added)}</b> yeni kayıt eklendi${R.dupDb ? ` · <b>${fmt(R.dupDb)}</b> zaten vardı, atlandı` : ''}${R.unmatched ? ` · <b>${fmt(R.unmatched)}</b> kurallarla eşleşmedi` : ''}</span><span class="fgroup"><button class="btn sm" data-act="showUp" data-uid="${R.upId}">Panelde göster</button>${R.unmatched ? `<button class="btn sm primary" data-act="aiUp" data-uid="${R.upId}">Eşleşmeyenleri AI ile sınıflandır</button>` : ''}</span></div>`;
+  } else {
+    h += `<div class="fgroup"><button class="btn primary" data-act="fSave" data-fid="${f.id}"${P.rows.length && !f.busy ? '' : ' disabled'}>${f.busy ? esc(f.busy) : `${fmt(P.rows.length)} kaydı ekle`}</button><span class="muted" style="font-size:12.5px">Mevcut kayıtlarla aynı olanlar otomatik atlanır.</span></div>`;
+  }
+  return h + '</div>';
+}
+async function saveFile(f) {
+  const P = f.parsed; if (!P.rows.length || f.busy) return;
+  lsSet('sr.map.' + cyrb53(f.header.join('|')), { w: f.header.length, map: f.map });
+  f.busy = 'Kaydediliyor…'; render();
+  const upId = uuid4();
+  try {
+    await S.store.createUpload({ id: upId, name: f.name, from: P.min, to: P.max, total: P.total, dupFile: P.dupFile });
+    const rows = P.rows.map(r => ({ h: r.h, d: r.d, c: r.c, t: r.t, x: r.x }));
+    const ins = new Set(await S.store.insertRows(upId, rows, n => { f.busy = `Kaydediliyor ${fmt(n)} / ${fmt(rows.length)}…`; render(); }));
+    const added = ins.size, dupDb = rows.length - added;
+    const unmatched = rows.filter(r => ins.has(r.h) && !classifyText(r.t, S.C)).length;
+    if (added) await S.store.updateUpload(upId, { added, dupDb }); else await S.store.deleteUpload({ id: upId });
+    f.result = { upId, added, dupDb, unmatched, from: P.min, to: P.max };
+    if (!S.bounds.max || P.max > S.bounds.max) S.bounds.max = P.max;
+    if (!S.bounds.min || P.min < S.bounds.min) S.bounds.min = P.min;
+    toast(added ? `${f.name}: ${fmt(added)} yeni kayıt eklendi.` : `${f.name}: tüm kayıtlar zaten vardı.`);
+    loadUploads(); refreshRange();
+  } catch (e) {
+    toast(storeErrorText(e), 'err');
+    try { await S.store.deleteUpload({ id: upId }); } catch {}
+  } finally { f.busy = null; render(); }
+}
+async function gotoRange(from, to) {
+  setRange(from, to);
+  const L = dayDiff(from, to) + 1;
+  await loadRange(addDays(from, -L), to);
+}
+async function showUpload(upId) {
+  const u = S.uploads.find(x => x.id === upId) || S.files.map(f => f.result).find(r => r && r.upId === upId);
+  if (!u) return;
+  await gotoRange(u.from, u.to); switchTab('panel');
+}
+async function aiForUpload(upId) {
+  const u = S.uploads.find(x => x.id === upId) || S.files.map(f => f.result).find(r => r && r.upId === upId);
+  if (!u) return;
+  await gotoRange(u.from, u.to);
+  runAI(S.rows.filter(r => r.u === upId && r.meth === 'none'));
+}
+async function deleteUpload(u) {
+  try { await S.store.deleteUpload(u); toast(`${u.name} yüklemesi silindi.`); }
+  catch (e) { toast(storeErrorText(e), 'err'); }
+  loadUploads(); refreshRange();
+}
+function renderUploads() {
+  $('#uploadZone').hidden = !S.canWrite; $('#uploadRO').hidden = S.canWrite;
+  $('#fileCards').innerHTML = S.files.map(fileCard).join('');
+  const ups = S.uploads;
+  if (!ups.length) { $('#uploadList').innerHTML = '<p class="muted" style="margin:0">Henüz yükleme yapılmadı.</p>'; return; }
+  let h = '<table><thead><tr><th>Dosya</th><th>Yükleyen</th><th>Kayıt tarihleri</th><th class="num">Eklenen</th><th class="num">Atlanan tekrar</th><th>Yüklenme</th><th></th></tr></thead><tbody>';
+  for (const u of ups) {
+    const when = new Date(u.at); const ws = `${pad(when.getDate())}.${pad(when.getMonth() + 1)}.${when.getFullYear()} ${pad(when.getHours())}:${pad(when.getMinutes())}`;
+    h += `<tr><td style="overflow-wrap:anywhere;min-width:160px">${esc(u.name)}</td><td>${u.by ? (u.by === S.email ? 'Sen' : esc(u.by)) : '<span class="muted">—</span>'}</td><td style="white-space:nowrap">${fmtDate(u.from)} – ${fmtDate(u.to)}</td><td class="num">${fmt(u.added || 0)}</td><td class="num">${fmt((u.dupDb || 0) + (u.dupFile || 0))}</td><td style="white-space:nowrap">${ws}</td><td style="white-space:nowrap"><button class="btn ghost sm" data-act="showUp" data-uid="${esc(u.id)}">Panelde göster</button>${S.canWrite ? `<button class="btn ghost sm danger" data-act="delUp" data-uid="${esc(u.id)}" data-confirm="Silinsin mi? Bu yüklemeyle eklenen ${fmt(u.added || 0)} kayıt kaldırılır.">Sil</button>` : ''}</td></tr>`;
+  }
+  $('#uploadList').innerHTML = h + '</tbody></table>';
+}
+
+/* ============ taxonomy editor ============ */
+function draftCompiled() { return compile(S.draft || S.tax); }
+function renderTax() {
+  if (!S.draft) S.draft = clone(S.tax);
+  const ro = !S.canWrite, D = S.draft;
+  let h = '';
+  D.cats.forEach((c, ci) => {
+    const color = ci < 8 ? CAT_COLORS[ci] : NONE_COLOR;
+    h += `<div class="cat"><div class="cat-h"><i style="background:${color}"></i><input type="text" id="cn_${esc(c.id)}" value="${esc(c.name)}" data-cname="${ci}" aria-label="Ana kategori adı"${ro ? ' disabled' : ''}><span class="cnt" data-ccnt="${esc(c.id)}"></span>${ro ? '' : `<button class="btn ghost sm" data-act="addSub" data-ci="${ci}">+ Alt kategori</button><button class="btn ghost sm danger" data-act="delCat" data-ci="${ci}" data-confirm="“${esc(c.name)}” ve alt kategorileri silinsin mi?">Sil</button>`}</div><div class="subs">`;
+    c.subs.forEach((s, si) => {
+      h += `<div class="subrow"><input type="text" id="sn_${esc(s.id)}" value="${esc(s.name)}" data-sname="${ci}.${si}" aria-label="Alt kategori adı"${ro ? ' disabled' : ''}><textarea id="kw_${esc(s.id)}" rows="1" data-kw="${ci}.${si}" aria-label="${esc(s.name)} anahtar kelimeleri" placeholder="anahtar, kelime, ifade"${ro ? ' disabled' : ''}>${esc((s.kw || []).join(', '))}</textarea><span class="cnt" data-scnt="${esc(s.id)}" title="Seçili dönemde kurallarla eşleşen kayıt">–</span>${ro ? '<span></span>' : `<button class="btn ghost sm danger" data-act="delSub" data-ci="${ci}" data-si="${si}" data-confirm="Silinsin mi?" aria-label="Alt kategoriyi sil">✕</button>`}</div>`;
+    });
+    h += '</div></div>';
+  });
+  $('#taxEditor').innerHTML = h;
+  $('#taxAdd').innerHTML = ro ? '<span class="ro-note">Kategorileri yalnızca düzenleme yetkisi olanlar değiştirebilir.</span>' : `<button class="btn" data-act="addCat">+ Ana kategori ekle</button><button class="btn ghost" data-act="taxDefault" data-confirm="Varsayılan listeye dönülsün mü? (Kaydetmeden geri alabilirsin)">Varsayılan listeye dön</button>`;
+  $$('#taxEditor textarea').forEach(autoGrow);
+  updateTaxCounts(); updateTest(); updateSaveBar();
+}
+function autoGrow(t) { t.style.height = 'auto'; t.style.height = Math.min(160, t.scrollHeight + 2) + 'px'; }
+function updateSaveBar() { $('#taxSave').hidden = !S.draftDirty || S.tab !== 'kategori'; }
+let taxTimer = null;
+function taxChanged() { S.draftDirty = true; updateSaveBar(); clearTimeout(taxTimer); taxTimer = setTimeout(() => { updateTaxCounts(); updateTest(); }, 350); }
+function updateTaxCounts() {
+  const C = draftCompiled(), rows = inRange();
+  const sc = new Map(), cc = new Map(); let matched = 0;
+  for (const r of rows) { const s = classifyText(r.t, C); if (s) { matched++; sc.set(s, (sc.get(s) || 0) + 1); const c = C.subMap.get(s).cat; cc.set(c, (cc.get(c) || 0) + 1); } }
+  $$('[data-scnt]').forEach(el => { el.textContent = fmt(sc.get(el.dataset.scnt) || 0); });
+  $$('[data-ccnt]').forEach(el => { el.textContent = fmt(cc.get(el.dataset.ccnt) || 0) + ' kayıt'; });
+  const tot = rows.length, ov = rows.filter(r => r.meth === 'a' || r.meth === 'u').length;
+  $('#coverage').innerHTML = tot ? `<div class="kpi" style="box-shadow:none;padding:0"><span class="val">${fmtPct(pct(matched, tot))}</span><div class="meter"><span style="width:${pct(matched, tot)}%;background:var(--accent)"></span></div><span class="meta">${fmt(matched)} / ${fmt(tot)} kayıt kurallarla eşleşiyor${ov ? ` · ${fmt(ov)} kayıtta AI/manuel atama var, onlar kuraldan etkilenmez` : ''}</span></div>` : '<p class="muted" style="margin:0">Seçili dönemde kayıt yok.</p>';
+}
+function updateTest() {
+  const v = $('#testTxt').value.trim(), out = $('#testRes');
+  if (!v) { out.innerHTML = ''; return; }
+  const C = draftCompiled(), r = classifyText(v, C, true);
+  if (!r.id) { out.innerHTML = '<span class="tag none">Hiçbir kurala uymuyor</span><span class="muted">Bu tür metinler AI ile sınıflandırılabilir ya da ilgili alt kategoriye anahtar kelime ekleyebilirsin.</span>'; return; }
+  const so = C.subMap.get(r.id);
+  out.innerHTML = `<div><b>${esc(so.catName)}</b> › ${esc(so.name)}</div><div>${r.hits.map(k => `<span class="kw">${esc(k)}</span>`).join('')}</div>`;
+}
+function parseKw(s) { return [...new Set(s.split(/[,\n;]/).map(x => x.trim()).filter(Boolean))]; }
+async function saveTax() {
+  const D = S.draft;
+  for (const c of D.cats) { if (!c.name.trim()) return toast('Boş ana kategori adı var.', 'err'); if (!c.subs.length) return toast(`“${c.name}” için en az bir alt kategori gerekli.`, 'err'); for (const s of c.subs) if (!s.name.trim()) return toast(`“${c.name}” altında adı boş bir alt kategori var.`, 'err'); }
+  const body = { cats: D.cats.map(c => ({ id: c.id, name: c.name.trim(), subs: c.subs.map(s => ({ id: s.id, name: s.name.trim(), kw: s.kw || [] })) })), v: ((S.taxDoc && S.taxDoc.v) || 0) + 1, at: Date.now(), by: S.me || null };
+  try { await S.store.saveTax(body); S.draftDirty = false; onTax({ cats: body.cats }); toast('Kategoriler kaydedildi. Panel yeni kurallarla güncellendi.'); updateSaveBar(); }
+  catch (e) { toast(storeErrorText(e), 'err'); }
+}
+function onTax(data) {
+  S.taxDoc = data;
+  const t = data && Array.isArray(data.cats) && data.cats.length ? { cats: data.cats } : clone(DEFAULT_TAX);
+  S.tax = t; S.C = compile(t); S.taxV++; ruleCache.clear(); rebuildRows();
+  if (!S.draftDirty) { S.draft = clone(t); }
+  render();
+}
+
+/* ============ demo data (never stored) ============ */
+function mulberry(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const DEMO_T = {
+  dd_belge: ['Hesap dekontu indiremiyorum, belge oluşturulamadı hatası alıyorum', 'Benden habersiz ücret kesintisi yapılmış, bu masraf nedir', 'Bildirim ayarlarını kapattığım halde sürekli bildirim geliyor'],
+  dd_diger: ['Müşteri hizmetlerine bir türlü ulaşamıyorum, temsilci bağlanmıyor', 'Üç gündür geri dönüş bekliyorum, cevap verilmedi'],
+  fby_doviz: ['Dolar alırken uygulamadaki kur ile işlem kuru farklı çıktı', 'Gram altın satışı yapamıyorum, işlem beklemede kaldı', 'Euro hesabıma yatırdığım para görünmüyor'],
+  fby_faiz: ['Günlük faiz getirisi bu ay hesabıma yatmadı', 'Vadeli hesabın vade sonunda faiz oranı söylenenden düşük', 'Mevduat faizinden fazla stopaj kesilmiş'],
+  fby_diger: ['Birikim hedefime otomatik aktarım yapılmadı'],
+  gd_kimlik: ['Kimlik kartımın çipini NFC ile okutamıyorum', 'Yüz doğrulama adımında sürekli başarısız diyor', 'Selfie çekerken uygulama kapanıyor, kimlik doğrulaması bitmiyor'],
+  gd_sim: ['Hattımı yeni operatöre taşıdım, SIM blokesi yüzünden giriş yapamıyorum', 'Telefonumu değiştirdim, yeni cihazda hesabım açılmıyor', 'Cihaz değişikliği onayı 24 saattir bekliyor'],
+  gd_sms: ['SMS doğrulama kodu gelmiyor, giriş yapamıyorum', 'Onay kodu çok geç geliyor, süre doluyor', 'Doğrulama kodu gelmedi, tekrar gönder dediğim halde mesaj yok'],
+  gd_sifre: ['Şifremi unuttum, sıfırlama ekranı hata veriyor', 'Uygulama açılmıyor, açılış ekranında donuyor', 'Güncellemeden sonra uygulamaya giremiyorum'],
+  hs_guncel: ['Adres bilgimi güncellemek istiyorum ama ekran kaydetmiyor', 'Telefon numaramı değiştirmem gerekiyor, iletişim bilgisi güncellenmiyor'],
+  hs_kapat: ['Hesabımı kapatmak istiyorum, nasıl yapacağımı bulamadım', 'Üyeliğimi iptal ettim ama hesap hala açık görünüyor'],
+  hs_kullan: ['Hesabıma bloke konmuş, sebebini öğrenmek istiyorum', 'Hesabım kısıtlandı, para çekemiyorum', 'Bakiyem yanlış görünüyor'],
+  kg_gp: ['Siparişten kazandığım GetirPara hesabıma yüklenmedi', 'GetirPara bakiyem bir anda sıfırlandı'],
+  kg_kamp: ['Kampanya koşullarını sağladığım halde indirim uygulanmadı', 'Davet kampanyasından ödülüm gelmedi', 'Promosyon kodu geçersiz diyor'],
+  kt_iade: ['İade ettiğim ürünün parası kartıma yansımadı', 'Provizyon kaldırılmadı, bakiyem bloke duruyor', 'Aynı alışverişte iki kez çekildi, itiraz etmek istiyorum'],
+  kt_basvuru: ['Fiziksel kartım iki haftadır gelmedi, kargo takip yok', 'Kartı aktif etmeye çalışıyorum hata veriyor', 'Temassız ödeme çalışmıyor'],
+  kt_borc: ['Kart borcum ekstrede yanlış görünüyor', 'Son ödeme tarihinde ödememe rağmen gecikme faizi yansıtıldı', 'Asgari tutarı ödedim ama hala borçlu görünüyorum'],
+  kt_islem: ['Yurt dışı internet alışverişinde işlem reddedildi', 'Kart limitimi artırmak istiyorum', 'Kartım çalındı, hemen kapatılmasını istiyorum'],
+  kr_basvuru: ['Kredi başvurum gerekçe belirtilmeden reddedildi', 'Kredi limiti teklifi ekranda görünmüyor', 'Findeks notum yüksek ama başvurum onaylanmadı'],
+  kr_kapat: ['Kredimi erken kapama tutarını öğrenmek istiyorum', 'Yapılandırma talebime dönüş yapılmadı'],
+  kr_taksit: ['Taksit ödemem hesabımda para olmasına rağmen alınmadı', 'Bu ayki kredi taksidim iki kere çekildi', 'Otomatik ödeme talimatım çalışmadı, gecikme yazıldı'],
+  pt_giden: ['Gönderdiğim EFT alıcıya ulaşmadı', 'FAST ile para gönderdim, karşı tarafa geçmedi', 'Yanlış IBAN\'a havale yaptım, iade istiyorum'],
+  pt_diger: ['Bana gelen para hesabıma geçmedi', 'Arkadaşımın gönderdiği transfer görünmüyor'],
+  _none: ['Uygulamadaki tutar ile ödediğim tutar birbirini tutmuyor', 'Bu konuda kimse yardımcı olamadı, çok mağdurum', 'Geçen hafta yaptığım işlem hala beklemede', 'Neden böyle bir şey yapıldığını anlamadım'],
+};
+const DEMO_PRE = ['', '', 'Merhaba, ', 'İyi günler, ', 'Acil: ', 'Sayın yetkili, '];
+const DEMO_SUF = ['', '.', ' Lütfen yardımcı olun.', ' Çözüm bekliyorum.', ' İkinci kez yazıyorum.', ' Mağduriyetimin giderilmesini istiyorum.'];
+function genDemo() {
+  const rnd = mulberry(20261005), today = todayStr(), start = addDays(today, -74);
+  const BIAS = { kt: 1.7, gd: 1.5, pt: 1.2, kr: 1.0, hs: 0.9, kg: 0.7, dd: 0.6, fb: 0.55, _n: 0.9 };
+  const ids = Object.keys(DEMO_T), weights = ids.map(id => (0.5 + rnd()) * (BIAS[id.slice(0, 2)] || 1));
+  const chW = [['ai', .36], ['mobil', .3], ['web', .19], ['ivr', .15]];
+  const pickCh = () => { let x = rnd(); for (const [c, w] of chW) { if ((x -= w) < 0) return c; } return 'ai'; };
+  const byDate = new Map();
+  for (let d = start; d <= today; d = addDays(d, 1)) {
+    const wd = new Date(toUTC(d)).getUTCDay(), age = dayDiff(d, today);
+    const base = (wd === 0 || wd === 6 ? 34 : 52) + Math.floor(rnd() * 16);
+    const w = ids.map((id, i) => weights[i] * (id === 'gd_sms' && age < 14 ? 3.2 : id === 'kt_iade' && age < 30 ? 1.8 : id === 'kg_kamp' && age < 40 && age > 25 ? 2.5 : 1));
+    const tw = w.reduce((a, b) => a + b, 0), rows = [];
+    for (let k = 0; k < base; k++) {
+      let x = rnd() * tw, i = 0; while ((x -= w[i]) > 0 && i < ids.length - 1) i++;
+      const id = ids[i], tpl = DEMO_T[id][Math.floor(rnd() * DEMO_T[id].length)];
+      const t = DEMO_PRE[Math.floor(rnd() * DEMO_PRE.length)] + tpl + DEMO_SUF[Math.floor(rnd() * DEMO_SUF.length)] + (rnd() < .5 ? ` (Talep no ${100000 + Math.floor(rnd() * 899999)})` : '');
+      const c = pickCh(), h = rowHash(d, c, t);
+      const row = { h, c, t, u: 'demo' };
+      if (id === '_none' && rnd() < .5) { row.o = ['dd_diger', 'hs_kullan', 'pt_diger'][Math.floor(rnd() * 3)]; row.m = 'a'; }
+      else if (rnd() < .01) { row.o = id === '_none' ? 'dd_diger' : id; row.m = 'u'; }
+      row.d = d; rows.push(row);
+    }
+    byDate.set(d, rows);
+  }
+  return [...byDate.values()].flat();
+}
+async function enterDemo() {
+  S.demo = true; S.canWriteReal = S.canWrite; S.canWrite = true; S.files = [];
+  const st = new LocalStore(genDemo());
+  st.ups.set('demo', { id: 'demo', name: 'ornek_sikayetler.xlsx (örnek)', at: Date.now(), by: null, from: addDays(todayStr(), -74), to: todayStr(), added: 0, dupDb: 0, dupFile: 0, docs: [] });
+  S.store = st; await attachStore(); switchTab('panel');
+}
+async function exitDemo() {
+  S.demo = false; S.canWrite = S.canWriteReal ?? S.canWrite; S.files = [];
+  if (!S.realStore) { S.store = null; showAuth(); return; }
+  S.store = S.realStore; await attachStore();
+}
+
+/* ============ tabs + events ============ */
+function switchTab(t) {
+  if (S.tab === 'kategori' && t !== 'kategori' && S.draftDirty) toast('Kategorilerde kaydedilmemiş değişiklik var.');
+  S.tab = t; lsSet('sr.tab', t);
+  $$('#tabs .tab').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === t));
+  ['panel', 'kayit', 'yukle', 'kategori'].forEach(k => { $('#tab-' + k).hidden = k !== t; });
+  if (t === 'kategori' && !S.draftDirty) S.draft = clone(S.tax);
+  updateSaveBar(); render();
+}
+function armConfirm(btn) {
+  if (btn.dataset.armed) return true;
+  btn.dataset.armed = '1'; btn.dataset.label = btn.textContent; btn.textContent = btn.dataset.confirm + ' Tekrar tıkla';
+  setTimeout(() => { if (btn.isConnected && btn.dataset.armed) { delete btn.dataset.armed; btn.textContent = btn.dataset.label; } }, 4500);
+  return false;
+}
+const fileById = id => S.files.find(f => f.id === id);
+document.addEventListener('click', async e => {
+  const b = e.target.closest('button, .brow, .clamp'); if (!b) return;
+  if (b.classList.contains('clamp')) { b.classList.toggle('open'); return; }
+  if (b.dataset.tab) return switchTab(b.dataset.tab);
+  if (b.dataset.p) return presetRange(b.dataset.p);
+  if (b.dataset.p2) return presetRange(b.dataset.p2);
+  if (b.dataset.g) { S.gran = b.dataset.g; lsSet('sr.gran', S.gran); return render(); }
+  if (b.dataset.m) { S.trendMode = b.dataset.m; lsSet('sr.tm', S.trendMode); return render(); }
+  if (b.dataset.ch) {
+    const all = S.chans.size === CHANNELS.length, c = b.dataset.ch;
+    if (c === '*') S.chans = new Set(CHANNELS.map(x => x.id));
+    else if (all) S.chans = new Set([c]);
+    else { S.chans.has(c) ? S.chans.delete(c) : S.chans.add(c); if (!S.chans.size) S.chans = new Set(CHANNELS.map(x => x.id)); }
+    S.rec.page = 0; return render();
+  }
+  if (b.dataset.lg) {
+    const set = S.trendMode === 'ch' ? S.hidden.ch : S.focus ? S.hidden.sub : S.hidden.cat;
+    set.has(b.dataset.lg) ? set.delete(b.dataset.lg) : set.add(b.dataset.lg); return render();
+  }
+  if (b.classList.contains('brow') && b.dataset.cat && b.dataset.cat !== '_none') { const c = b.dataset.cat; S.openCats.has(c) ? S.openCats.delete(c) : S.openCats.add(c); return render(); }
+  if (b.dataset.pg) { S.rec.page += +b.dataset.pg; render(); $('#tab-kayit').scrollIntoView({ block: 'start' }); return; }
+  if (b.dataset.ftext != null) { const f = fileById(b.dataset.fid), i = +b.dataset.ftext; f.map.text = f.map.text.includes(i) ? f.map.text.filter(x => x !== i) : [...f.map.text, i].sort((x, y) => x - y); parseFile(f); return render(); }
+  if (b.dataset.fchmode) { const f = fileById(b.dataset.fid); f.map.chMode = b.dataset.fchmode; refreshChMap(f); parseFile(f); return render(); }
+  if (b.dataset.confirm && !armConfirm(b)) return;
+  const act = b.dataset.act; if (!act) return;
+  if (act === 'goUpload') return switchTab('yukle');
+  if (act === 'demo') return enterDemo();
+  if (act === 'exitDemo') return exitDemo();
+  if (act === 'aiStop') { S.ai && S.ai.ctl.abort(); return; }
+  if (act === 'aiNone') return runAI(inRange().filter(r => r.meth === 'none'));
+  if (act === 'aiFiltNone') return runAI(recFiltered().filter(r => r.meth === 'none'));
+  if (act === 'aiFiltAll') return runAI(recFiltered());
+  if (act === 'export') return exportXlsx();
+  if (act === 'fRemove') { S.files = S.files.filter(f => f.id !== b.dataset.fid); return render(); }
+  if (act === 'fSave') return saveFile(fileById(b.dataset.fid));
+  if (act === 'showUp') return showUpload(b.dataset.uid);
+  if (act === 'aiUp') return aiForUpload(b.dataset.uid);
+  if (act === 'delUp') { const u = S.uploads.find(x => x.id === b.dataset.uid); if (u) { b.disabled = true; b.textContent = 'Siliniyor…'; await deleteUpload(u); } return; }
+  const D = S.draft;
+  if (act === 'addSub') { D.cats[+b.dataset.ci].subs.push({ id: uid('s'), name: 'Yeni alt kategori', kw: [] }); taxChanged(); renderTax(); const ins = $$('#taxEditor [data-sname^="' + b.dataset.ci + '."]'); ins[ins.length - 1]?.select(); return; }
+  if (act === 'delSub') { const c = D.cats[+b.dataset.ci]; if (c.subs.length <= 1) return toast('Bir ana kategoride en az bir alt kategori olmalı.', 'err'); c.subs.splice(+b.dataset.si, 1); taxChanged(); return renderTax(); }
+  if (act === 'delCat') { if (D.cats.length <= 1) return toast('En az bir ana kategori olmalı.', 'err'); D.cats.splice(+b.dataset.ci, 1); taxChanged(); return renderTax(); }
+  if (act === 'addCat') { D.cats.push({ id: uid('c'), name: 'Yeni kategori', subs: [{ id: uid('s'), name: 'Diğer', kw: [] }] }); taxChanged(); renderTax(); const ins = $$('#taxEditor [data-cname]'); ins[ins.length - 1]?.select(); if (D.cats.length > 8) toast('8 ana kategoriden sonrakiler grafikte gri gösterilir.'); return; }
+  if (act === 'taxDefault') { S.draft = clone(DEFAULT_TAX); taxChanged(); return renderTax(); }
+  if (act === 'taxReset') { S.draft = clone(S.tax); S.draftDirty = false; return renderTax(); }
+  if (act === 'taxSave') return saveTax();
+});
+document.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.classList && e.target.classList.contains('brow')) { e.preventDefault(); e.target.click(); } });
+document.addEventListener('input', e => {
+  const t = e.target, D = S.draft;
+  if (t.dataset.cname != null) { D.cats[+t.dataset.cname].name = t.value; return taxChanged(); }
+  if (t.dataset.sname != null) { const [ci, si] = t.dataset.sname.split('.').map(Number); D.cats[ci].subs[si].name = t.value; return taxChanged(); }
+  if (t.dataset.kw != null) { const [ci, si] = t.dataset.kw.split('.').map(Number); D.cats[ci].subs[si].kw = parseKw(t.value); autoGrow(t); return taxChanged(); }
+  if (t.id === 'testTxt') { clearTimeout(taxTimer); taxTimer = setTimeout(updateTest, 200); return; }
+  if (t.id === 'recQ') { clearTimeout(recTimer); recTimer = setTimeout(() => { S.rec.q = t.value; S.rec.page = 0; render(); }, 250); }
+});
+let recTimer = null;
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.id === 'dFrom' || t.id === 'dTo') { const f = $('#dFrom').value, to = $('#dTo').value; if (f && to) setRange(f, to); return; }
+  if (t.id === 'focusCat') { S.focus = t.value; return render(); }
+  if (t.id === 'recCat') { S.rec.cat = t.value; S.rec.sub = ''; S.rec.page = 0; return render(); }
+  if (t.id === 'recSub') { S.rec.sub = t.value; S.rec.page = 0; return render(); }
+  if (t.id === 'recMeth') { S.rec.meth = t.value; S.rec.page = 0; return render(); }
+  if (t.id === 'fileIn') { addFiles([...t.files]); t.value = ''; return; }
+  if (t.dataset.row) {
+    const [doc, h] = t.dataset.row.split('|'), v = t.value;
+    const upd = new Map([[doc, new Map([[h, v === '__rule' ? { m: 'rule' } : { o: v, m: 'u' }]])]]);
+    try { await_(applyOverrides(upd)); } catch {}
+    return;
+  }
+  if (t.dataset.fsheet) { const f = fileById(t.dataset.fsheet); f.sheet = t.value; loadSheet(f); return render(); }
+  if (t.dataset.fm) { const f = fileById(t.dataset.fid), k = t.dataset.fm; f.map[k] = k === 'ch' ? t.value : +t.value; if (k === 'date') f.map.text = f.map.text.filter(i => i !== +t.value); if (k === 'chCol') refreshChMap(f); parseFile(f); return render(); }
+  if (t.dataset.fchv != null) { const f = fileById(t.dataset.fid); f.map.chMap[t.dataset.fchv] = t.value; parseFile(f); return render(); }
+});
+function await_(p) { p.catch(e => toast(storeErrorText(e), 'err')); }
+const drop = $('#drop');
+['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e => { if (e.dataTransfer && e.dataTransfer.files.length) addFiles([...e.dataTransfer.files]); });
+
+/* ============ auth + boot ============ */
+let SB = null;
+const CFG = window.RADAR_CONFIG || {};
+function showAuth(msg, kind) {
+  $('#auth').hidden = false; $('#app').hidden = true;
+  $('#authMsg').textContent = msg || ''; $('#authMsg').className = 'auth-msg' + (kind ? ' ' + kind : '');
+  $('#authForm').hidden = kind === 'cfg' || kind === 'noacc';
+  $('#authOut').hidden = kind !== 'noacc';
+}
+function hideAuth() { $('#auth').hidden = true; $('#app').hidden = false; }
+async function loadTax() { try { onTax(await S.store.getTax()); } catch (e) { toast(storeErrorText(e), 'err'); } }
+async function loadUploads() { try { S.uploads = await S.store.listUploads(); if (S.tab === 'yukle') render(); } catch (e) { toast(storeErrorText(e), 'err'); } }
+let changeTimer = null, lastRefresh = 0;
+async function attachStore() {
+  unsubChange && unsubChange();
+  S.loaded = null; S.docs = new Map(); S.rows = []; S.range = null; S.loading = true; rangeGen++;
+  hideAuth(); render();
+  await loadTax(); loadUploads();
+  unsubChange = S.store.onChange(t => {
+    clearTimeout(changeTimer);
+    changeTimer = setTimeout(() => { if (t === 'ayarlar') loadTax(); else { loadUploads(); refreshRange(); } }, 1200);
+  });
+  try { S.bounds = await S.store.bounds(); } catch (e) { S.bounds = { min: null, max: null }; toast(storeErrorText(e), 'err'); }
+  const end = S.bounds.max || todayStr();
+  lastRefresh = Date.now();
+  setRange(addDays(end, -29), end, '30');
+}
+async function startSession(session) {
+  S.email = session.user.email || ''; S.me = S.email;
+  const [m, e] = await Promise.all([SB.rpc('is_member'), SB.rpc('is_editor')]);
+  if (m.error) { showAuth(storeErrorText(m.error), 'err'); return; }
+  if (!m.data) { showAuth(`${S.email} hesabının panele erişimi yok. Yöneticinden seni ekip listesine eklemesini iste.`, 'noacc'); return; }
+  S.canWrite = !!e.data; S.canWriteReal = S.canWrite;
+  S.mode = 'db'; S.demo = false;
+  S.store = S.realStore = new SupaStore(SB, S.email);
+  await attachStore();
+}
+async function init() {
+  const t = lsGet('sr.tab', 'panel');
+  switchTab(['panel', 'kayit', 'yukle', 'kategori'].includes(t) ? t : 'panel');
+  if (!CFG.supabaseUrl || !CFG.supabaseAnonKey || !window.supabase) {
+    showAuth('Site henüz yapılandırılmamış: Netlify ortam değişkenlerinde SUPABASE_URL ve SUPABASE_ANON_KEY tanımlı olmalı. Bu arada örnek veriyle göz atabilirsin.', 'cfg');
+    return;
+  }
+  SB = window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseAnonKey, { auth: { persistSession: true, autoRefreshToken: true } });
+  SB.auth.onAuthStateChange((ev) => { if (ev === 'SIGNED_OUT') { S.realStore = null; if (!S.demo) { S.store = null; showAuth('Çıkış yaptın.'); } } });
+  const { data } = await SB.auth.getSession();
+  if (data.session) await startSession(data.session); else showAuth();
+}
+$('#authForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn = $('#authBtn'); btn.disabled = true; btn.textContent = 'Giriş yapılıyor…';
+  const { data, error } = await SB.auth.signInWithPassword({ email: $('#authEmail').value.trim(), password: $('#authPw').value });
+  btn.disabled = false; btn.textContent = 'Giriş yap';
+  if (error) { showAuth(/invalid/i.test(error.message) ? 'E-posta ya da şifre hatalı.' : 'Giriş yapılamadı: ' + error.message, 'err'); return; }
+  $('#authPw').value = '';
+  await startSession(data.session);
+});
+document.addEventListener('click', async e => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const act = b.dataset.act;
+  if (act === 'refresh') { b.disabled = true; await Promise.all([loadTax(), loadUploads(), refreshRange()]); lastRefresh = Date.now(); b.disabled = false; toast('Güncel veriler getirildi.'); }
+  else if (act === 'logout' || act === 'authLogout') { if (SB) await SB.auth.signOut(); S.email = null; showAuth('Çıkış yaptın.'); }
+  else if (act === 'changePw') {
+    const pw = $('#newPw').value; if (pw.length < 8) { toast('Şifre en az 8 karakter olmalı.', 'err'); return; }
+    const { error } = await SB.auth.updateUser({ password: pw });
+    if (error) toast('Şifre değiştirilemedi: ' + error.message, 'err'); else { $('#newPw').value = ''; toast('Şifren değiştirildi.'); b.closest('details').open = false; }
+  }
+  else if (act === 'authDemo') { hideAuth(); enterDemo(); }
+});
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && S.mode === 'db' && !S.demo && S.store && Date.now() - lastRefresh > 120000) { lastRefresh = Date.now(); loadUploads(); refreshRange(); }
+});
+init();
+</script>
+</body></html>
